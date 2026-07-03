@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/be/default/main}">
+<head>
+  <title>User Management</title>
+</head>
+<body>
+<div layout:fragment="content">
+
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">User Management</h1>
+  </div>
+
+  <div class="tw-card p-0 overflow-hidden">
+    <div class="px-6 py-4 border-b flex items-center justify-between">
+      <h2 class="text-lg font-bold" style="color:var(--primary)">User List</h2>
+      <div class="btn-group btn-sm">
+        <a th:href="@{/admin/v1/access/users/create}" class="btn btn-success btn-sm">
+          <i class="fas fa-fw fa-plus"></i> Add Data
+        </a>
+        <button type="submit" form="selection"
+                th:formaction="@{/admin/v1/access/users/delete-selected}"
+                data-confirm="Confirm Delete"
+                class="btn btn-danger btn-sm">
+          <i class="fas fa-fw fa-times"></i> Delete Selected
+        </button>
+      </div>
+    </div>
+
+    <div class="p-4" style="overflow-x:auto">
+      <table class="table table-bordered table-hover align-middle">
+        <thead>
+          <form id="searchform" th:action="@{/admin/v1/access/users}" method="get">
+            <tr>
+              <th width="2%"></th>
+              <th width="7%">
+                <select name="q_page_size" id="q_page_size" class="form-control">
+                  <option value="10"  th:selected="${filter['q_page_size'] == null or filter['q_page_size'] == 10}">10</option>
+                  <option value="20"  th:selected="${filter['q_page_size'] == 20}">20</option>
+                  <option value="50"  th:selected="${filter['q_page_size'] == 50}">50</option>
+                  <option value="100" th:selected="${filter['q_page_size'] == 100}">100</option>
+                </select>
+              </th>
+              <th width="15%">
+                <input id="q_code" type="text" class="form-control" name="q_code"
+                       th:value="${filter['q_code']}">
+              </th>
+              <th width="20%">
+                <input id="q_name" type="text" class="form-control" name="q_name"
+                       th:value="${filter['q_name']}">
+              </th>
+              <th width="15%">
+                <input id="q_phone" type="text" class="form-control" name="q_phone"
+                       th:value="${filter['q_phone']}">
+              </th>
+              <th width="15%">
+                <input id="q_email" type="text" class="form-control" name="q_email"
+                       th:value="${filter['q_email']}">
+              </th>
+              <th width="10%">
+                <select name="q_status" id="q_status" class="form-control">
+                  <option disabled th:selected="${filter['q_status'] == null}">Select</option>
+                  <option value="Active"   th:selected="${filter['q_status'] == 'Active'}">Active</option>
+                  <option value="Inactive" th:selected="${filter['q_status'] == 'Inactive'}">Inactive</option>
+                </select>
+              </th>
+              <th></th>
+              <th width="12%">
+                <select name="q_role" id="q_role" class="form-control">
+                  <option disabled th:selected="${filter['q_role'] == null}">Select</option>
+                  <option th:each="role : ${roles}"
+                          th:value="${role.id}"
+                          th:text="${role.name}"
+                          th:selected="${filter['q_role'] == role.id}"></option>
+                </select>
+              </th>
+              <th width="5%" class="text-center align-middle">
+                <div class="btn-group">
+                  <button type="submit" form="searchform" class="btn btn-sm btn-success">
+                    <i class="fas fa-fw fa-search"></i>
+                  </button>
+                  <a th:href="@{/admin/v1/access/users}" class="btn btn-sm btn-danger">
+                    <i class="fas fa-fw fa-times"></i>
+                  </a>
+                </div>
+              </th>
+            </tr>
+            <tr>
+              <th width="5%"><input type="checkbox" id="checkall"/></th>
+              <th width="5%">No</th>
+              <th width="15%">Code</th>
+              <th width="20%">Name</th>
+              <th width="20%">Phone</th>
+              <th width="15%">Email</th>
+              <th width="15%">Status</th>
+              <th width="15%">Picture</th>
+              <th width="10%">Roles</th>
+              <th width="5%">Action</th>
+            </tr>
+          </form>
+        </thead>
+        <tbody>
+          <form id="selection" method="post" th:action="@{/admin/v1/access/users/delete-selected}">
+            <tr th:each="data, iterStat : ${datas}">
+              <td>
+                <input name="selected" th:value="${data.id}" type="checkbox"/>
+              </td>
+              <td th:text="${iterStat.index + 1 + (paginate.pageSize * (paginate.currentPage - 1))}"></td>
+              <td th:text="${data.code}"></td>
+              <td th:text="${data.name}"></td>
+              <td th:text="${data.phone}"></td>
+              <td th:text="${data.email}"></td>
+              <td class="text-left">
+                <i th:if="${data.status == 'Active'}" class="fas fa-check-circle text-green-500 text-xl" title="Active"></i>
+                <i th:unless="${data.status == 'Active'}" class="fas fa-times-circle text-red-500 text-xl" title="Inactive"></i>
+              </td>
+              <td class="text-center">
+                <img th:src="${data.pictureUrl != null ? data.pictureUrl : '/public/modules/access/user/user.png'}"
+                     style="max-width:100px">
+              </td>
+              <td>
+                <span th:each="role : ${data.roles}" class="badge text-bg-primary"
+                      th:text="${role.name}"></span>
+              </td>
+              <td class="text-center">
+                <div class="btn-group">
+                  <button type="button" class="btn btn-sm btn-primary dropdown-toggle"
+                          data-toggle-dd aria-expanded="false">Action</button>
+                  <div class="dropdown-menu dropdown-menu-end">
+                    <a th:href="@{/admin/v1/access/users/{id}/edit(id=${data.id})}"
+                       class="dropdown-item">
+                      <i class="fas fa-pen fa-fw"></i> Edit
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <form th:action="@{/admin/v1/access/users/{id}(id=${data.id})}"
+                          method="post" class="m-0">
+                      <input type="hidden" name="_method" value="DELETE"/>
+                      <button type="submit" data-confirm="Confirm Delete"
+                              class="dropdown-item danger">
+                        <i class="fas fa-trash fa-fw"></i> Delete
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </form>
+        </tbody>
+      </table>
+
+      <div class="d-flex justify-content-end mt-4">
+        <nav>
+          <ul class="pagination">
+            <li th:if="${paginate.currentPage != 1}" class="page-item">
+              <a class="page-link"
+                 th:href="@{/admin/v1/access/users(q_page=${paginate.currentPage - 1}, q_page_size=${filter['q_page_size']}, q_code=${filter['q_code']}, q_name=${filter['q_name']}, q_phone=${filter['q_phone']}, q_email=${filter['q_email']}, q_status=${filter['q_status']}, q_role=${filter['q_role']})}">
+                Previous
+              </a>
+            </li>
+            <li th:each="i : ${#numbers.sequence(1, paginate.totalPage)}"
+                th:classappend="${i == paginate.currentPage} ? 'active'"
+                class="page-item">
+              <a class="page-link"
+                 th:href="@{/admin/v1/access/users(q_page=${i}, q_page_size=${filter['q_page_size']}, q_code=${filter['q_code']}, q_name=${filter['q_name']}, q_phone=${filter['q_phone']}, q_email=${filter['q_email']}, q_status=${filter['q_status']}, q_role=${filter['q_role']})}"
+                 th:text="${i}"></a>
+            </li>
+            <li th:if="${paginate.currentPage != paginate.totalPage and paginate.totalPage != 0}"
+                class="page-item">
+              <a class="page-link"
+                 th:href="@{/admin/v1/access/users(q_page=${paginate.currentPage + 1}, q_page_size=${filter['q_page_size']}, q_code=${filter['q_code']}, q_name=${filter['q_name']}, q_phone=${filter['q_phone']}, q_email=${filter['q_email']}, q_status=${filter['q_status']}, q_role=${filter['q_role']})}">
+                Next
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <script th:inline="none">
+    $("#checkall").click(function () {
+      $('input:checkbox').not(this).prop('checked', this.checked);
+    });
+  </script>
+
+</div>
+</body>
+</html>

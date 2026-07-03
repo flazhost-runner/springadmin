@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="foot">
+
+    <!-- Select2 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
+
+    <!-- Trumbowyg JS (local vendor) -->
+    <script src="/vendor/trumbowyg/dist/trumbowyg.min.js"></script>
+    <script src="/vendor/trumbowyg/filemanager.js"></script>
+
+    <!-- Toast + Modal + Confirm HTML containers -->
+    <div class="toast-container" id="tw-toasts"></div>
+    <div class="modal-overlay" id="tw-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span id="tw-modal-title">Konfirmasi</span>
+                <button type="button" class="modal-close" data-modal-close>&times;</button>
+            </div>
+            <div class="modal-body" id="tw-modal-body"></div>
+            <div class="modal-footer" id="tw-modal-footer"></div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+
+        /* ------------------------------------------------------------------ */
+        /* 1. Dropdown toggle (vanilla, pengganti Bootstrap JS)                */
+        /* ------------------------------------------------------------------ */
+        document.addEventListener('click', function (e) {
+            var trigger = e.target.closest('[data-toggle-dd]');
+            var box     = trigger ? trigger.closest('.dropdown, .btn-group') : null;
+            var current = box ? box.querySelector('.dropdown-menu') : null;
+            document.querySelectorAll('.dropdown-menu.show').forEach(function (m) {
+                if (m !== current) m.classList.remove('show');
+            });
+            if (current) {
+                e.preventDefault();
+                current.classList.toggle('show');
+            }
+        });
+
+        /* ------------------------------------------------------------------ */
+        /* 2. Toast                                                            */
+        /* ------------------------------------------------------------------ */
+        window.Toast = function (message, type) {
+            type = type || 'info';
+            var c = document.getElementById('tw-toasts');
+            var t = document.createElement('div');
+            t.className = 'toast ' + type;
+            var icon = type === 'success' ? 'fa-check-circle'
+                     : type === 'error'   ? 'fa-times-circle'
+                     :                      'fa-info-circle';
+            t.innerHTML = '<i class="fas ' + icon + '"></i><span></span>';
+            t.querySelector('span').textContent = message;
+            c.appendChild(t);
+            requestAnimationFrame(function () { t.classList.add('show'); });
+            setTimeout(function () {
+                t.classList.remove('show');
+                setTimeout(function () { t.remove(); }, 300);
+            }, 3500);
+        };
+
+        /* ------------------------------------------------------------------ */
+        /* 3. Modal & Confirm dialog (vanilla, bertema)                        */
+        /* ------------------------------------------------------------------ */
+        var overlay = document.getElementById('tw-modal');
+        var titleEl = document.getElementById('tw-modal-title');
+        var bodyEl  = document.getElementById('tw-modal-body');
+        var footEl  = document.getElementById('tw-modal-footer');
+
+        function closeModal() { overlay.classList.remove('show'); }
+
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay || e.target.hasAttribute('data-modal-close')) closeModal();
+        });
+
+        window.Modal = {
+            open: function (opts) {
+                titleEl.textContent = opts.title || 'Info';
+                bodyEl.innerHTML    = opts.body  || '';
+                footEl.innerHTML    = '';
+                var buttons = opts.buttons || [{ label: 'Tutup', class: 'btn btn-primary-tw px-4 py-2', onClick: closeModal }];
+                buttons.forEach(function (b) {
+                    var btn = document.createElement('button');
+                    btn.className   = b.class || 'btn btn-primary-tw px-4 py-2';
+                    btn.textContent = b.label;
+                    btn.addEventListener('click', function () {
+                        if (b.onClick) b.onClick();
+                        if (b.close !== false) closeModal();
+                    });
+                    footEl.appendChild(btn);
+                });
+                overlay.classList.add('show');
+            },
+            close: closeModal
+        };
+
+        // confirmDialog → Promise<boolean>
+        window.confirmDialog = function (message, opts) {
+            opts = opts || {};
+            return new Promise(function (resolve) {
+                window.Modal.open({
+                    title: opts.title      || 'Konfirmasi',
+                    body:  '<p>' + message + '</p>',
+                    buttons: [
+                        {
+                            label:   opts.cancelText || 'Batal',
+                            class:   'btn btn-danger px-4 py-2 text-white',
+                            onClick: function () { resolve(false); }
+                        },
+                        {
+                            label:   opts.okText || 'Ya',
+                            class:   'btn btn-primary-tw px-4 py-2',
+                            onClick: function () { resolve(true); }
+                        }
+                    ]
+                });
+            });
+        };
+
+        // Auto-handle [data-confirm] on links and form buttons
+        document.addEventListener('click', function (e) {
+            var el = e.target.closest('[data-confirm]');
+            if (!el) return;
+            e.preventDefault();
+            var msg = el.getAttribute('data-confirm') || 'Anda yakin?';
+            confirmDialog(msg).then(function (ok) {
+                if (!ok) return;
+                if (el.tagName === 'A' && el.href) { window.location.href = el.href; }
+                else if (el.form)              { el.form.submit(); }
+                else if (el.closest('form'))   { el.closest('form').submit(); }
+            });
+        });
+
+        /* ------------------------------------------------------------------ */
+        /* 4. Trumbowyg init                                                   */
+        /* ------------------------------------------------------------------ */
+        (function () {
+            if (!(window.jQuery && jQuery.fn.trumbowyg)) return;
+            // Plain editor
+            $('.trumbowyg').trumbowyg();
+            // Full editor with file-manager toolbar button
+            $('.trumbowyg-editor').trumbowyg({
+                btns: [
+                    ['viewHTML'],
+                    ['formatting'],
+                    ['strong', 'em', 'del'],
+                    ['superscript', 'subscript'],
+                    ['link'],
+                    ['filemanager'],
+                    ['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'],
+                    ['unorderedList', 'orderedList'],
+                    ['horizontalRule'],
+                    ['removeformat'],
+                    ['fullscreen']
+                ],
+                semantic: { div: 'div' },
+                removeformatPasted: true,
+                autogrow: true,
+                plugins: { filemanager: true }
+            });
+            // Sync editor HTML back to textarea on form submit
+            $('form').on('submit', function () {
+                $(this).find('.trumbowyg, .trumbowyg-editor').each(function () {
+                    if ($(this).data('trumbowyg')) $(this).val($(this).trumbowyg('html'));
+                });
+            });
+        })();
+
+        /* ------------------------------------------------------------------ */
+        /* 5. Select2 init                                                     */
+        /* ------------------------------------------------------------------ */
+        (function () {
+            if (window.jQuery && jQuery.fn.select2) {
+                $('.select2').select2({ width: '100%' });
+            }
+        })();
+
+        /* ------------------------------------------------------------------ */
+        /* 6. Sidebar mobile toggle                                            */
+        /* ------------------------------------------------------------------ */
+        (function () {
+            var sb  = document.getElementById('tw-sidebar');
+            var ov  = document.getElementById('tw-sidebar-overlay');
+            var btn = document.getElementById('tw-sidebar-toggle');
+            function openSidebar()  { if (sb) sb.classList.remove('-translate-x-full'); if (ov) ov.classList.remove('hidden'); }
+            function closeSidebar() { if (sb) sb.classList.add('-translate-x-full');    if (ov) ov.classList.add('hidden'); }
+            if (btn) btn.addEventListener('click', openSidebar);
+            if (ov)  ov.addEventListener('click', closeSidebar);
+        })();
+
+        /* ------------------------------------------------------------------ */
+        /* 7. Check-all: #checkall click → toggle all .checkall checkboxes    */
+        /* ------------------------------------------------------------------ */
+        (function () {
+            if (!window.jQuery) return;
+            $(document).on('change', '#checkall', function () {
+                var checked = $(this).prop('checked');
+                $('input.checkall[type="checkbox"]').prop('checked', checked);
+            });
+        })();
+
+        /* ------------------------------------------------------------------ */
+        /* 8. Image fallback — GLOBAL (avatar → fa-user, other → fa-image)    */
+        /* ------------------------------------------------------------------ */
+        function imgPlaceholder(img) {
+            if (img.dataset.imgFallback) return; // prevent loop
+            img.dataset.imgFallback = '1';
+
+            var cls      = (img.className || '') + ' ' + (img.getAttribute('alt') || '');
+            var isAvatar = /img-profile|picture|avatar|user/i.test(cls);
+            var isCircle = /rounded-full|rounded-circle|img-profile/i.test(cls);
+            var icon     = isAvatar ? 'fa-user' : 'fa-image';
+
+            var w   = img.getAttribute('width')  || img.offsetWidth  || 40;
+            var h   = img.getAttribute('height') || img.offsetHeight || 40;
+            var box = document.createElement('span');
+            box.className  = 'img-placeholder ' + (img.className || '');
+            box.style.cssText =
+                'display:inline-flex;align-items:center;justify-content:center;' +
+                'width:'  + w + 'px;height:' + h + 'px;' +
+                'background:#f1f5f9;color:#94a3b8;' +
+                (isCircle ? 'border-radius:9999px;' : 'border-radius:.5rem;');
+            box.innerHTML = '<i class="fas ' + icon + '" style="font-size:' +
+                Math.max(14, Math.min(w, h) * 0.45) + 'px"></i>';
+            if (img.parentNode) img.parentNode.replaceChild(box, img);
+        }
+
+        // Capture-phase: fires before onerror bubbles
+        document.addEventListener('error', function (e) {
+            if (e.target && e.target.tagName === 'IMG') imgPlaceholder(e.target);
+        }, true);
+
+        // Images that already failed before the handler was registered
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('img').forEach(function (img) {
+                if (img.complete && img.naturalWidth === 0) imgPlaceholder(img);
+            });
+        });
+
+        /* ------------------------------------------------------------------ */
+        /* 9. Counter animation on [data-count] elements                      */
+        /* ------------------------------------------------------------------ */
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-count]').forEach(function (el) {
+                var target = parseInt(el.getAttribute('data-count') || '0', 10);
+                if (isNaN(target) || target === 0) return;
+                var dur  = 1500;
+                var step = target / (dur / 16);
+                var cur  = 0;
+                var t = setInterval(function () {
+                    cur += step;
+                    if (cur >= target) { cur = target; clearInterval(t); }
+                    el.textContent = Math.floor(cur).toLocaleString();
+                }, 16);
+            });
+        });
+
+    })();
+    </script>
+
+</th:block>
+</body>
+</html>

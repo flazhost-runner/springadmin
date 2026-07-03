@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="id"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${setting != null && setting.name != null ? setting.name : 'Welcome'}">Welcome</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Inter font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+  <!-- CSS custom properties from active theme -->
+  <style th:inline="text">
+    :root {
+      --primary:   /*[[${theme != null ? theme.primary()   : '#3B82F6'}]]*/ '#3B82F6';
+      --secondary: /*[[${theme != null ? theme.secondary() : '#60A5FA'}]]*/ '#60A5FA';
+      --light:     /*[[${theme != null ? theme.light()     : '#DBEAFE'}]]*/ '#DBEAFE';
+      --dark:      /*[[${theme != null ? theme.dark()      : '#1E40AF'}]]*/ '#1E40AF';
+    }
+    body { font-family: 'Inter', sans-serif; }
+    .btn-primary-fe {
+      background: var(--primary);
+      color: #fff;
+      padding: 0.75rem 2rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      display: inline-block;
+      transition: opacity .2s;
+    }
+    .btn-primary-fe:hover { opacity: .85; }
+    .section-label {
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      font-size: .75rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+  </style>
+
+  <!-- Child page head slot -->
+  <th:block layout:fragment="head"></th:block>
+</head>
+<body class="bg-white text-gray-800">
+
+  <!-- ===== Navigation ===== -->
+  <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+      <a href="/" class="text-xl font-bold" style="color:var(--primary)"
+         th:text="${setting != null && setting.name != null ? setting.name : 'SiteName'}">SiteName</a>
+      <div class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
+        <a href="#services" class="hover:text-gray-900 transition-colors">Services</a>
+        <a href="#about"    class="hover:text-gray-900 transition-colors">About</a>
+        <a href="#gallery"  class="hover:text-gray-900 transition-colors">Gallery</a>
+        <a href="#contact"  class="hover:text-gray-900 transition-colors">Contact</a>
+      </div>
+      <a href="/auth/login" class="btn-primary-fe text-sm">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- Child page content -->
+  <div layout:fragment="content"></div>
+
+  <!-- ===== Footer ===== -->
+  <footer class="bg-gray-900 text-gray-300 py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+
+        <!-- Brand -->
+        <div>
+          <h3 class="text-white text-lg font-bold mb-3"
+              th:text="${setting != null && setting.name != null ? setting.name : 'SiteName'}">SiteName</h3>
+          <p class="text-sm leading-relaxed"
+             th:utext="${setting != null && setting.description != null ? setting.description : ''}"></p>
+        </div>
+
+        <!-- Contact info -->
+        <div>
+          <h4 class="text-white font-semibold mb-3">Contact</h4>
+          <ul class="space-y-2 text-sm">
+            <li th:if="${setting != null && setting.phone != null}">
+              <span class="mr-2">&#128222;</span>
+              <span th:text="${setting.phone}"></span>
+            </li>
+            <li th:if="${setting != null && setting.email != null}">
+              <span class="mr-2">&#9993;</span>
+              <span th:text="${setting.email}"></span>
+            </li>
+            <li th:if="${setting != null && setting.address != null}">
+              <span class="mr-2">&#128205;</span>
+              <span th:text="${setting.address}"></span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Links -->
+        <div>
+          <h4 class="text-white font-semibold mb-3">Quick Links</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="/" class="hover:text-white transition-colors">Home</a></li>
+            <li><a href="#services" class="hover:text-white transition-colors">Services</a></li>
+            <li><a href="#about" class="hover:text-white transition-colors">About</a></li>
+            <li><a href="/auth/login" class="hover:text-white transition-colors">Admin</a></li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="border-t border-gray-700 pt-6 text-center text-sm">
+        <span th:if="${setting != null && setting.copyright != null}"
+              th:text="${setting.copyright}"></span>
+        <span th:if="${setting == null || setting.copyright == null}">&copy; 2025 All rights reserved.</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

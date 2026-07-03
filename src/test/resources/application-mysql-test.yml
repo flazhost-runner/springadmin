@@ -1,0 +1,27 @@
+# =============================================================================
+# Profile: mysql-test — CI MySQL integration matrix (mysql:8.0 / mysql:8.4)
+#
+# Layered ON TOP of the base "test" profile by TestProfileResolver, so it only
+# overrides what differs from SQLite: driver, dialect, and Hikari settings.
+# Everything else (Redis exclusions, session store none, app.* test values,
+# in-memory JWT blacklist) is inherited from application-test.yml.
+#
+# CI overrides url/username/password via -Dspring.datasource.* system
+# properties; the defaults below match .github/workflows/ci.yml so the suite
+# can also be run locally against a container started with the same env.
+# =============================================================================
+spring:
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/springadmin_test?allowPublicKeyRetrieval=true&useSSL=false
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: springadmin
+    password: springadmin
+    hikari:
+      maximum-pool-size: 10
+      # Override the SQLite PRAGMA init-SQL inherited from the test profile.
+      connection-init-sql: "SELECT 1"
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect

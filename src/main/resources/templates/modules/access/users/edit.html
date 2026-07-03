@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/be/default/main}">
+<head>
+  <title>Edit User</title>
+</head>
+<body>
+<div layout:fragment="content">
+
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">User Management</h1>
+  </div>
+
+  <div class="tw-card p-6">
+    <h2 class="text-lg font-bold mb-4" style="color:var(--primary)">User Form</h2>
+
+    <form method="post"
+          th:action="@{/admin/v1/access/users/{id}(id=${data.id})}"
+          enctype="multipart/form-data"
+          th:object="${form}">
+      <input type="hidden" name="_method" value="PUT"/>
+
+      <!-- Code -->
+      <div class="mb-3">
+        <label for="code" class="form-label fw-semibold">Code</label>
+        <input id="code" type="text" name="code"
+               th:value="${form.code != null ? form.code : data.code}"
+               th:classappend="${#fields.hasErrors('code')} ? 'is-invalid'"
+               class="form-control">
+        <div th:if="${#fields.hasErrors('code')}" class="invalid-feedback"
+             th:errors="*{code}"></div>
+      </div>
+
+      <!-- Name -->
+      <div class="mb-3">
+        <label for="name" class="form-label fw-semibold">Name</label>
+        <input id="name" type="text" name="name"
+               th:value="${form.name != null ? form.name : data.name}"
+               th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"
+               class="form-control">
+        <div th:if="${#fields.hasErrors('name')}" class="invalid-feedback"
+             th:errors="*{name}"></div>
+      </div>
+
+      <!-- Phone -->
+      <div class="mb-3">
+        <label for="phone" class="form-label fw-semibold">Phone Number</label>
+        <input id="phone" type="text" name="phone"
+               th:value="${form.phone != null ? form.phone : data.phone}"
+               th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid'"
+               class="form-control">
+        <div th:if="${#fields.hasErrors('phone')}" class="invalid-feedback"
+             th:errors="*{phone}"></div>
+      </div>
+
+      <!-- Email -->
+      <div class="mb-3">
+        <label for="email" class="form-label fw-semibold">Email</label>
+        <input id="email" type="email" name="email"
+               th:value="${form.email != null ? form.email : data.email}"
+               th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"
+               class="form-control">
+        <div th:if="${#fields.hasErrors('email')}" class="invalid-feedback"
+             th:errors="*{email}"></div>
+      </div>
+
+      <!-- Password (optional on edit) -->
+      <div class="mb-3">
+        <label for="password" class="form-label fw-semibold">Password <small class="text-muted">(leave blank to keep current)</small></label>
+        <input id="password" type="password" name="password" value=""
+               th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'"
+               class="form-control">
+        <div th:if="${#fields.hasErrors('password')}" class="invalid-feedback"
+             th:errors="*{password}"></div>
+      </div>
+
+      <!-- Password Confirmation -->
+      <div class="mb-3">
+        <label for="password_confirmation" class="form-label fw-semibold">Password Confirm</label>
+        <input id="password_confirmation" type="password" name="passwordConfirmation" value=""
+               th:classappend="${#fields.hasErrors('passwordConfirmation')} ? 'is-invalid'"
+               class="form-control">
+        <div th:if="${#fields.hasErrors('passwordConfirmation')}" class="invalid-feedback"
+             th:errors="*{passwordConfirmation}"></div>
+      </div>
+
+      <!-- Timezone -->
+      <div class="mb-3">
+        <label for="timezone" class="form-label fw-semibold">Timezone</label>
+        <select id="timezone" name="timezone"
+                th:classappend="${#fields.hasErrors('timezone')} ? 'is-invalid'"
+                class="form-control">
+          <option th:each="tz : ${timezones}"
+                  th:value="${tz}"
+                  th:text="${tz}"
+                  th:selected="${(form.timezone != null ? form.timezone : data.timezone) == tz}"></option>
+        </select>
+        <div th:if="${#fields.hasErrors('timezone')}" class="invalid-feedback"
+             th:errors="*{timezone}"></div>
+      </div>
+
+      <!-- Status -->
+      <div class="mb-3">
+        <label for="status" class="form-label fw-semibold">Status</label>
+        <select id="status" name="status" required
+                th:classappend="${#fields.hasErrors('status')} ? 'is-invalid'"
+                class="form-control">
+          <option value="Active"
+                  th:selected="${(form.status != null ? form.status : data.status) == 'Active'}">Active</option>
+          <option value="Inactive"
+                  th:selected="${(form.status != null ? form.status : data.status) == 'Inactive'}">Inactive</option>
+        </select>
+        <div th:if="${#fields.hasErrors('status')}" class="invalid-feedback"
+             th:errors="*{status}"></div>
+      </div>
+
+      <!-- Picture -->
+      <div class="mb-4">
+        <label for="picture" class="form-label fw-semibold">Picture</label>
+        <div class="d-flex align-items-center gap-3">
+          <img id="picturePreview"
+               th:src="${data.pictureUrl != null ? data.pictureUrl : '/public/modules/access/user/user.png'}"
+               width="90" height="90"
+               class="rounded border p-1"
+               style="object-fit:contain;background:#f8fafc"
+               onerror="this.style.visibility='hidden'">
+          <input id="picture" type="file" name="picture" accept="image/*" class="form-control"
+                 th:classappend="${#fields.hasErrors('picture')} ? 'is-invalid'">
+        </div>
+        <div th:if="${#fields.hasErrors('picture')}" class="text-danger small mt-1"
+             th:errors="*{picture}"></div>
+      </div>
+
+      <!-- Blocked -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold d-block">Blocked</label>
+        <div class="d-flex flex-wrap gap-3 p-2 rounded border">
+          <label class="d-flex align-items-center gap-2">
+            <input id="blocked" type="checkbox" name="blocked" value="1"
+                   th:checked="${data.blocked}"
+                   class="w-4 h-4">
+            <span>Blokir akun</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Blocked Reason -->
+      <div class="mb-3" id="div_blocked_reason">
+        <label for="blocked_reason" class="form-label fw-semibold">Blocked Reason</label>
+        <input id="blocked_reason" type="text" name="blocked_reason"
+               th:value="${form.blockedReason != null ? form.blockedReason : data.blockedReason}"
+               th:classappend="${#fields.hasErrors('blockedReason')} ? 'is-invalid'"
+               class="form-control">
+        <div th:if="${#fields.hasErrors('blockedReason')}" class="invalid-feedback"
+             th:errors="*{blockedReason}"></div>
+      </div>
+
+      <!-- Roles -->
+      <div class="mb-4">
+        <label class="form-label fw-semibold d-block">Role</label>
+        <div class="d-flex flex-wrap gap-3 p-2 rounded border"
+             th:classappend="${#fields.hasErrors('roles')} ? 'border-danger'">
+          <label th:each="role, iterStat : ${roles}"
+                 class="d-flex align-items-center gap-2">
+            <input th:id="'roles' + ${iterStat.index}"
+                   type="checkbox" name="roles[]" th:value="${role.id}"
+                   th:checked="${data.roles != null and data.roles.![name].contains(role.name)}"
+                   class="w-4 h-4">
+            <span th:text="${role.name}"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary-tw px-4 py-2">
+          <i class="fas fa-save me-1"></i> Save
+        </button>
+        <a th:href="@{/admin/v1/access/users}" class="btn btn-danger px-4 py-2 text-white">Back</a>
+      </div>
+
+    </form>
+  </div>
+
+  <script th:inline="none">
+    (function() {
+      var input = document.getElementById('picture');
+      var prev  = document.getElementById('picturePreview');
+      if (!input || !prev) { return; }
+      input.addEventListener('change', function() {
+        var f = this.files && this.files[0];
+        if (f && f.type.startsWith('image/')) {
+          prev.src = URL.createObjectURL(f);
+          prev.style.visibility = 'visible';
+        }
+      });
+    })();
+    $(document).ready(function () {
+      $('#div_blocked_reason').toggle($('#blocked').is(':checked'));
+      $('#blocked').click(function () {
+        if (this.checked) {
+          $('#div_blocked_reason').show();
+        } else {
+          $('#blocked_reason').val('');
+          $('#div_blocked_reason').hide();
+        }
+      });
+    });
+  </script>
+
+</div>
+</body>
+</html>

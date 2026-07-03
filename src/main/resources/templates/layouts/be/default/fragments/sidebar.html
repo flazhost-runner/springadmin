@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<!--/* Sidebar (Tailwind, themeable) */-->
+<aside th:fragment="sidebar"
+       id="tw-sidebar"
+       class="sidebar-gradient text-white w-64 min-h-screen fixed top-0 left-0 z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300 flex flex-col">
+
+    <!-- Brand -->
+    <a th:href="@{/admin/v1/dashboard}"
+       class="flex items-center gap-3 px-6 py-5 border-b border-white/10">
+        <div class="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center overflow-hidden shrink-0">
+            <!-- Logo image always rendered; global image fallback in foot.html handles missing logo -->
+            <img th:src="${setting != null and setting.logo != null ? '/public/media/setting/' + setting.logo : ''}"
+                 alt="logo"
+                 class="w-full h-full object-contain p-1">
+        </div>
+        <span class="text-lg font-bold truncate"
+              th:text="${setting != null and setting.name != null ? setting.name : 'Admin Panel'}">Admin Panel</span>
+    </a>
+
+    <!-- Nav -->
+    <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+
+        <!-- Dashboard — always visible -->
+        <a th:href="@{/admin/v1/dashboard}"
+           th:classappend="${currentUri != null and currentUri.contains('/dashboard') ? ' active' : ''}"
+           class="nav-link-tw flex items-center gap-3 px-4 py-3 rounded-lg font-medium">
+            <i class="fas fa-tachometer-alt w-5 text-center"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <!-- UI Components — gated -->
+        <a th:href="@{/admin/v1/components}"
+           th:if="${currentUser != null and (currentUser.administrator or
+                   (currentUser.roles != null and currentUser.roles.contains('Administrator')))}"
+           th:classappend="${currentUri != null and currentUri.contains('/components') ? ' active' : ''}"
+           class="nav-link-tw flex items-center gap-3 px-4 py-3 rounded-lg font-medium">
+            <i class="fas fa-cubes w-5 text-center"></i>
+            <span>UI Components</span>
+        </a>
+
+        <!-- Maintenance group header — shown when at least one child is accessible -->
+        <th:block th:if="${currentUser != null}">
+            <p class="px-4 pt-5 pb-2 text-xs uppercase tracking-wider text-white/70 font-bold">Maintenance</p>
+
+            <!-- Permission — gated (Administrator only or explicit role) -->
+            <a th:href="@{/admin/v1/access/permissions}"
+               th:if="${currentUser.administrator}"
+               th:classappend="${currentUri != null and currentUri.contains('/permissions') ? ' active' : ''}"
+               class="nav-link-tw flex items-center gap-3 px-4 py-3 rounded-lg font-medium">
+                <i class="fas fa-key w-5 text-center"></i>
+                <span>Permission</span>
+            </a>
+
+            <!-- Role -->
+            <a th:href="@{/admin/v1/access/roles}"
+               th:if="${currentUser.administrator}"
+               th:classappend="${currentUri != null and currentUri.contains('/roles') ? ' active' : ''}"
+               class="nav-link-tw flex items-center gap-3 px-4 py-3 rounded-lg font-medium">
+                <i class="fas fa-user-shield w-5 text-center"></i>
+                <span>Role</span>
+            </a>
+
+            <!-- User -->
+            <a th:href="@{/admin/v1/access/users}"
+               th:if="${currentUser.administrator}"
+               th:classappend="${currentUri != null and currentUri.contains('/users') ? ' active' : ''}"
+               class="nav-link-tw flex items-center gap-3 px-4 py-3 rounded-lg font-medium">
+                <i class="fas fa-users w-5 text-center"></i>
+                <span>User</span>
+            </a>
+
+            <!-- Setting -->
+            <a th:href="@{/admin/v1/setting}"
+               th:if="${currentUser.administrator}"
+               th:classappend="${currentUri != null and currentUri.contains('/setting') ? ' active' : ''}"
+               class="nav-link-tw flex items-center gap-3 px-4 py-3 rounded-lg font-medium">
+                <i class="fas fa-cog w-5 text-center"></i>
+                <span>Setting</span>
+            </a>
+        </th:block>
+
+    </nav>
+
+    <!-- Copyright -->
+    <div class="px-6 py-4 text-xs text-white/40 border-t border-white/10"
+         th:text="${setting != null and setting.copyright != null ? setting.copyright : ''}"></div>
+
+</aside>
+
+<!-- Overlay (mobile) -->
+<div id="tw-sidebar-overlay" class="fixed inset-0 bg-black/40 z-30 hidden md:hidden"></div>
+</body>
+</html>

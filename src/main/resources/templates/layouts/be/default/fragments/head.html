@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title th:text="${setting != null and setting.name != null ? setting.name : 'Admin Panel'}">Admin Panel</title>
+    <link rel="icon" type="image/png" href="/public/media/setting/laravel.png">
+    <meta name="csrf-token" th:content="${_csrf.token}">
+
+    <!-- Tailwind (CDN) — Preflight AKTIF (Tailwind murni, tanpa Bootstrap).
+         Warna didorong oleh tema aktif via model attribute theme. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary:       /*[[${theme != null ? theme.primary   : '#3B82F6'}]]*/ '#3B82F6',
+                        secondary:     /*[[${theme != null ? theme.secondary : '#60A5FA'}]]*/ '#60A5FA',
+                        'theme-light': /*[[${theme != null ? theme.light     : '#DBEAFE'}]]*/ '#DBEAFE',
+                        'theme-dark':  /*[[${theme != null ? theme.dark      : '#1E40AF'}]]*/ '#1E40AF'
+                    }
+                }
+            }
+        }
+        // CSS custom properties injected via JS — avoids th:inline="css" escaping # to \#
+        (function() {
+            var r = document.documentElement.style;
+            r.setProperty('--primary',     /*[[${theme != null ? theme.primary   : '#3B82F6'}]]*/ '#3B82F6');
+            r.setProperty('--secondary',   /*[[${theme != null ? theme.secondary : '#60A5FA'}]]*/ '#60A5FA');
+            r.setProperty('--theme-light', /*[[${theme != null ? theme.light     : '#DBEAFE'}]]*/ '#DBEAFE');
+            r.setProperty('--theme-dark',  /*[[${theme != null ? theme.dark      : '#1E40AF'}]]*/ '#1E40AF');
+        })();
+        /*]]>*/
+    </script>
+
+    <!-- CSS custom properties in a plain <style> (browser processes synchronously, no FOUC).
+         Uses th:inline="text" + [(...)] unescaped so # hex chars are NOT HTML-escaped.
+         This ensures sidebar background and body gradient are available before Tailwind CDN
+         asynchronously processes the <style type="text/tailwindcss"> block below. -->
+    <style th:inline="text">
+:root {
+    --primary:     [(${theme != null ? theme.primary   : '#3B82F6'})];
+    --secondary:   [(${theme != null ? theme.secondary : '#60A5FA'})];
+    --theme-light: [(${theme != null ? theme.light     : '#DBEAFE'})];
+    --theme-dark:  [(${theme != null ? theme.dark      : '#1E40AF'})];
+}
+body { background: linear-gradient(135deg, var(--theme-light) 0%, #f8fafc 100%); }
+.sidebar-gradient { background: var(--theme-dark); }
+    </style>
+
+    <!-- Komponen UI: kelas warisan (form-control, btn, table, dll) didefinisikan
+         ulang dengan Tailwind @apply, sehingga seluruh view 100% Tailwind tanpa Bootstrap. -->
+    <style type="text/tailwindcss">
+        @layer components {
+            /* ===== Form ===== */
+            .form-control {
+                @apply block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800
+                       focus:outline-none focus:ring-2 focus:border-transparent;
+            }
+            .form-control:focus { --tw-ring-color: var(--primary); }
+            .form-control.is-invalid { @apply border-red-500 focus:ring-red-400; }
+            select.form-control { @apply bg-white; }
+            textarea.form-control { @apply min-h-[90px]; }
+            .form-label { @apply block mb-1 text-sm text-gray-700; }
+            .form-check-input { @apply w-4 h-4 rounded border-gray-300 align-middle; accent-color: var(--primary); }
+            .form-check-label { @apply ml-1 text-sm text-gray-700; }
+            .invalid-feedback { @apply block mt-1 text-sm text-red-600; }
+
+            /* ===== Buttons ===== */
+            .btn {
+                @apply inline-flex items-center justify-center gap-1 rounded-lg px-4 py-2 text-sm font-medium
+                       cursor-pointer transition-colors border-0 no-underline;
+            }
+            .btn-sm { @apply px-3 py-1.5 text-xs; }
+            .btn-primary, .btn-primary-tw { background: var(--primary); @apply text-white; }
+            .btn-primary:hover, .btn-primary-tw:hover { background: var(--theme-dark); @apply text-white; }
+            .btn-success { @apply bg-green-600 text-white hover:bg-green-700; }
+            .btn-danger  { @apply bg-red-600 text-white hover:bg-red-700; }
+            .btn-group { @apply relative inline-flex gap-2; }
+
+            /* ===== Tables (gaya dashboard: header gray, border-bawah, row hover) ===== */
+            .table { @apply w-full text-sm text-gray-700; }
+            .table thead tr:first-child { @apply bg-gray-50; }
+            .table thead th { @apply py-3 px-4 text-left font-medium text-gray-600 border-b border-gray-200; }
+            .table tbody td { @apply py-3 px-4 align-middle border-b border-gray-100; }
+            .table tbody tr:hover { @apply bg-gray-50 transition-colors; }
+            /* table-bordered/-hover dipertahankan sebagai no-op agar markup lama tetap valid */
+            .table-bordered, .table-hover { }
+
+            /* ===== Alerts ===== */
+            .alert { @apply rounded-lg px-4 py-3 mb-4 text-sm border; }
+            .alert-danger  { @apply bg-red-50 text-red-700 border-red-200; }
+            .alert-success { @apply bg-green-50 text-green-700 border-green-200; }
+            .alert-info    { @apply bg-blue-50 text-blue-700 border-blue-200; }
+            .alert-warning { @apply bg-yellow-50 text-yellow-800 border-yellow-200; }
+            /* Alert beraksen tema (info/highlight) — ikut template switcher */
+            .alert-primary { background: var(--theme-light); color: var(--theme-dark); border-color: var(--primary); }
+
+            /* ===== Badges / pills ===== */
+            .badge { @apply inline-flex items-center px-2 py-1 rounded text-xs font-medium leading-none; }
+            .text-bg-primary { background: var(--primary); @apply text-white; }
+
+            /* ===== Pagination ===== */
+            .pagination { @apply inline-flex items-center gap-1; }
+            .page-item { @apply list-none; }
+            .page-link {
+                @apply inline-block px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700
+                       no-underline hover:bg-gray-50;
+            }
+            .page-item.active .page-link { background: var(--primary); @apply text-white border-transparent; }
+
+            /* ===== Dropdown (custom, tanpa Bootstrap JS) ===== */
+            .dropdown { @apply relative inline-block; }
+            .dropdown-toggle { @apply gap-1.5; }
+            .dropdown-toggle::after {
+                content: ""; display: inline-block; width: .4em; height: .4em;
+                margin-left: .15em; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+                transform: rotate(45deg) translateY(-1px); transition: transform .2s ease; opacity: .85;
+            }
+            .dropdown-toggle[aria-expanded="true"]::after { transform: rotate(-135deg) translateY(1px); }
+            .dropdown-menu {
+                @apply absolute right-0 top-full mt-2 min-w-[11rem] bg-white rounded-xl border border-gray-100 py-1.5 z-50;
+                box-shadow: 0 12px 28px -8px rgba(0,0,0,.18), 0 4px 10px -4px rgba(0,0,0,.10);
+                opacity: 0; visibility: hidden; transform: translateY(-4px) scale(.98);
+                transform-origin: top right; transition: opacity .15s ease, transform .15s ease, visibility .15s;
+                pointer-events: none;
+            }
+            .dropdown-menu.show { opacity: 1; visibility: visible; transform: translateY(0) scale(1); pointer-events: auto; }
+            .dropdown-item {
+                @apply flex items-center gap-2 mx-1.5 px-3 py-2 text-sm text-gray-700 rounded-lg
+                       no-underline cursor-pointer transition-colors;
+            }
+            .dropdown-item:hover { background: var(--theme-light); color: var(--theme-dark); }
+            .dropdown-item.danger:hover { @apply bg-red-50 text-red-600; }
+            .dropdown-divider { @apply my-1 border-t border-gray-100; }
+
+            /* ===== Extra Bootstrap shims ===== */
+            .btn-info { @apply bg-cyan-500 text-white hover:bg-cyan-600; }
+            .btn-outline-dark { @apply bg-transparent text-gray-800 border border-gray-800 hover:bg-gray-800 hover:text-white; }
+        }
+
+        /* ===== Modal & Toast & Confirm (vanilla, themeable) ===== */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 60;
+            display: flex; align-items: center; justify-content: center; padding: 1rem;
+            opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility .2s;
+        }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-box {
+            background: #fff; border-radius: 1rem; width: 100%; max-width: 28rem;
+            box-shadow: 0 20px 50px -12px rgba(0,0,0,.35);
+            transform: translateY(8px) scale(.97); transition: transform .2s ease;
+        }
+        .modal-overlay.show .modal-box { transform: translateY(0) scale(1); }
+        .modal-header { padding: 1rem 1.25rem; border-bottom: 1px solid #f1f5f9; font-weight: 700; color: var(--theme-dark); display: flex; align-items: center; justify-content: space-between; }
+        .modal-body { padding: 1.25rem; color: #374151; }
+        .modal-footer { padding: 1rem 1.25rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: .5rem; }
+        .modal-close { cursor: pointer; color: #9ca3af; background: none; border: 0; font-size: 1.1rem; }
+
+        .toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 70; display: flex; flex-direction: column; gap: .5rem; }
+        .toast {
+            min-width: 16rem; max-width: 22rem; background: #fff; border-radius: .75rem; padding: .75rem 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,.18); border-left: 4px solid var(--primary);
+            display: flex; align-items: center; gap: .6rem; font-size: .9rem;
+            transform: translateX(120%); transition: transform .25s ease, opacity .25s ease; opacity: 0;
+        }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast.success { border-left-color: #16a34a; }
+        .toast.error   { border-left-color: #dc2626; }
+        .toast.info    { border-left-color: var(--primary); }
+
+        /* ===== Helper non-utility ===== */
+        /* CSS vars defined in the plain <style th:inline="text"> block above (synchronous, no FOUC).
+           Repeated here so Tailwind CDN JIT scanner recognises var() usages. */
+        body { background: linear-gradient(135deg, var(--theme-light) 0%, #f8fafc 100%); }
+        .tw-card { @apply bg-white rounded-2xl; box-shadow: 0 10px 25px -5px rgba(0,0,0,.08), 0 8px 10px -6px rgba(0,0,0,.05); }
+        .glass-effect { background: rgba(255,255,255,.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.2); }
+        .sidebar-gradient { background: var(--theme-dark); }
+        #tw-sidebar a, #tw-sidebar a:hover, #tw-sidebar a:focus { text-decoration: none; color: #fff; }
+        .nav-link-tw { color: rgba(255,255,255,.85); transition: background .15s ease, color .15s ease; }
+        .nav-link-tw:hover { background: rgba(255,255,255,.12); color:#fff; }
+        .nav-link-tw.active { background: var(--primary); color:#fff; box-shadow: 0 4px 12px rgba(0,0,0,.25); }
+        .text-primary-tw { color: var(--primary) !important; }
+        .bg-primary-tw { background: var(--primary) !important; }
+
+        /* ===== Shim utility Bootstrap yang masih dipakai di markup ===== */
+        .row { display: flex; flex-wrap: wrap; }
+        .d-flex { display: flex; } .d-block { display: block; } .d-none { display: none; }
+        .align-items-center { align-items: center; } .justify-content-center { justify-content: center; }
+        .justify-content-between { justify-content: space-between; }
+        .justify-content-end { justify-content: flex-end; }
+        .fw-semibold { font-weight: 600; } .fw-bold { font-weight: 700; }
+        .w-100 { width: 100%; } .mx-auto { margin-left:auto; margin-right:auto; }
+        .me-1 { margin-right:.25rem; } .me-2 { margin-right:.5rem; } .ms-2 { margin-left:.5rem; } .ps-3 { padding-left:1rem; }
+        .align-middle { vertical-align: middle; }
+        .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+    </style>
+
+    <!-- Font Awesome + Bootstrap Icons (set ikon; bukan framework Bootstrap) -->
+    <link rel="stylesheet" th:href="@{/be/default/vendor/fontawesome-free/css/all.min.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Chart.js (grafik dashboard) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- jQuery (dependensi select2 / trumbowyg) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- Trumbowyg CSS (local vendor) -->
+    <link rel="stylesheet" href="/vendor/trumbowyg/dist/ui/trumbowyg.min.css">
+
+    <!-- Trumbowyg filemanager CSS classes -->
+    <style>
+        .tb-fm-items { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; }
+        .tb-fm-item { width: 120px; cursor: pointer; text-align: center; border: 2px solid transparent; border-radius: 4px; padding: 4px; }
+        .tb-fm-item:hover, .tb-fm-item.selected { border-color: var(--primary); }
+        .tb-fm-item img { width: 100%; height: 80px; object-fit: cover; border-radius: 2px; }
+        .tb-fm-item span { display: block; font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    </style>
+
+    <!-- Select2 CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css">
+    <style>
+        .select2-container--default .select2-selection--single,
+        .select2-selection .select2-selection--single {
+            border: 1px solid #d2d6de; border-radius: .5rem !important;
+            padding: 6px 12px; height: 40px !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 26px; position: absolute; top: 6px !important; right: 1px;
+        }
+    </style>
+</head>
+</html>

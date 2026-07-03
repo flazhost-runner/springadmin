@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layouts/be/default/fragments/head :: head}"></head>
+<body>
+
+  <!-- Sidebar -->
+  <div th:replace="~{layouts/be/default/fragments/sidebar :: sidebar}"></div>
+
+  <!-- Main wrapper — pushed right on md+ to make room for fixed sidebar -->
+  <div class="md:ml-64 min-h-screen flex flex-col">
+
+    <!-- Topbar wrapper (px-4 md:px-6 pt-4 matches NodeAdmin's main.ejs) -->
+    <div class="px-4 md:px-6 pt-4">
+      <div th:replace="~{layouts/be/default/fragments/topbar :: topbar}"></div>
+    </div>
+
+    <!-- Page content — each view fills this fragment -->
+    <main class="flex-1 px-4 md:px-6 pb-10">
+
+      <!-- Page body injected by child layout -->
+      <div layout:fragment="content">
+        <!-- content goes here -->
+      </div>
+
+    </main>
+
+  </div><!-- /.md:ml-64 -->
+
+  <!-- Foot scripts -->
+  <div th:replace="~{layouts/be/default/fragments/foot :: foot}"></div>
+
+  <!-- Flash message → Toast. Handles both FlashHelper.KEY_SUCCESS/KEY_ERROR (flash_success/flash_error)
+       and direct flashKey/flashMessage attributes (e.g. from GlobalExceptionHandler). -->
+  <th:block th:with="
+    _fKey=${flash_success != null ? 'success' : (flash_error != null ? 'error' : flashKey)},
+    _fMsg=${flash_success != null ? flash_success : (flash_error != null ? flash_error : flashMessage)}">
+  <script th:inline="javascript" th:if="${_fKey != null}">
+  /*<![CDATA[*/
+  (function () {
+      var key = /*[[${_fKey}]]*/ 'info';
+      var msg = /*[[${_fMsg}]]*/ '';
+      if (msg && typeof Toast === 'function') {
+          Toast(msg, key === 'success' ? 'success' : key === 'error' ? 'error' : 'info');
+      }
+  })();
+  /*]]>*/
+  </script>
+  </th:block>
+
+</body>
+</html>

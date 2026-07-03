@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/be/default/main}">
+<head>
+  <title>Role Management</title>
+</head>
+<body>
+<div layout:fragment="content">
+
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Role Management</h1>
+  </div>
+
+  <div class="tw-card p-0 overflow-hidden">
+    <div class="px-6 py-4 border-b flex items-center justify-between">
+      <h2 class="text-lg font-bold" style="color:var(--primary)">Role List</h2>
+      <div class="btn-group btn-sm">
+        <a th:href="@{/admin/v1/access/roles/create}" class="btn btn-success btn-sm">
+          <i class="fas fa-plus"></i> Add Data
+        </a>
+        <button type="submit" form="selection"
+                th:formaction="@{/admin/v1/access/roles/delete_selected}"
+                data-confirm="Confirm Delete"
+                class="btn btn-danger btn-sm">
+          <i class="fas fa-times"></i> Delete Selected
+        </button>
+      </div>
+    </div>
+
+    <div class="p-4" style="overflow-x:auto">
+      <table class="table table-bordered table-hover align-middle">
+        <thead>
+          <form id="searchform" th:action="@{/admin/v1/access/roles}" method="get">
+            <tr>
+              <th width="2%"></th>
+              <th width="7%">
+                <select name="q_page_size" id="q_page_size" class="form-control">
+                  <option value="10"  th:selected="${filter['q_page_size'] == null or filter['q_page_size'] == 10}">10</option>
+                  <option value="20"  th:selected="${filter['q_page_size'] == 20}">20</option>
+                  <option value="50"  th:selected="${filter['q_page_size'] == 50}">50</option>
+                  <option value="100" th:selected="${filter['q_page_size'] == 100}">100</option>
+                </select>
+              </th>
+              <th width="25%">
+                <input id="q_name" type="text" class="form-control" name="q_name"
+                       th:value="${filter['q_name']}">
+              </th>
+              <th width="10%">
+                <select name="q_status" id="q_status" class="form-control">
+                  <option disabled th:selected="${filter['q_status'] == null}">Select</option>
+                  <option value="Active"   th:selected="${filter['q_status'] == 'Active'}">Active</option>
+                  <option value="Inactive" th:selected="${filter['q_status'] == 'Inactive'}">Inactive</option>
+                </select>
+              </th>
+              <th width="13%">
+                <input id="q_desc" type="text" class="form-control" name="q_desc"
+                       th:value="${filter['q_desc']}">
+              </th>
+              <th width="5%" class="text-center align-middle">
+                <div class="btn-group">
+                  <button type="submit" form="searchform" class="btn btn-sm btn-success">
+                    <i class="fas fa-search"></i>
+                  </button>
+                  <a th:href="@{/admin/v1/access/roles}" class="btn btn-sm btn-danger">
+                    <i class="fas fa-times"></i>
+                  </a>
+                </div>
+              </th>
+            </tr>
+            <tr>
+              <th width="5%"><input type="checkbox" id="checkall"/></th>
+              <th width="5%">No</th>
+              <th width="25%">Name</th>
+              <th width="15%">Status</th>
+              <th width="13%">Description</th>
+              <th width="10%">Action</th>
+            </tr>
+          </form>
+        </thead>
+        <tbody>
+          <form id="selection" method="post" th:action="@{/admin/v1/access/roles/delete_selected}">
+            <tr th:each="data, iterStat : ${datas}">
+              <td>
+                <input name="selected[]" th:value="${data.id}" type="checkbox"/>
+              </td>
+              <td th:text="${iterStat.index + 1 + (paginate.pageSize * (paginate.currentPage - 1))}"></td>
+              <td th:text="${data.name}"></td>
+              <td class="text-left">
+                <i th:if="${data.status == 'Active'}" class="fas fa-check-circle text-green-500 text-xl" title="Active"></i>
+                <i th:unless="${data.status == 'Active'}" class="fas fa-times-circle text-red-500 text-xl" title="Inactive"></i>
+              </td>
+              <td th:text="${data.desc}"></td>
+              <td class="text-center">
+                <div class="btn-group">
+                  <button type="button" class="btn btn-sm btn-primary dropdown-toggle"
+                          data-toggle-dd aria-expanded="false">Action</button>
+                  <div class="dropdown-menu dropdown-menu-end">
+                    <a th:href="@{/admin/v1/access/roles/{id}/permission(id=${data.id})}"
+                       class="dropdown-item">
+                      <i class="fas fa-key"></i> Permission
+                    </a>
+                    <a th:href="@{/admin/v1/access/roles/{id}/edit(id=${data.id})}"
+                       class="dropdown-item">
+                      <i class="fas fa-pen"></i> Edit
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <form th:action="@{/admin/v1/access/roles/{id}/delete(id=${data.id}, _method='DELETE')}"
+                          method="post" class="m-0">
+                      <button type="submit" data-confirm="Confirm Delete"
+                              class="dropdown-item danger">
+                        <i class="fas fa-trash"></i> Delete
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </form>
+        </tbody>
+      </table>
+
+      <div class="d-flex justify-content-end mt-4">
+        <nav>
+          <ul class="pagination">
+            <li th:if="${paginate.currentPage != 1}" class="page-item">
+              <a class="page-link"
+                 th:href="@{/admin/v1/access/roles(q_page=${paginate.currentPage - 1}, q_page_size=${filter['q_page_size']}, q_name=${filter['q_name']}, q_status=${filter['q_status']}, q_desc=${filter['q_desc']})}">
+                Previous
+              </a>
+            </li>
+            <li th:each="i : ${#numbers.sequence(1, paginate.totalPage)}"
+                th:classappend="${i == paginate.currentPage} ? 'active'"
+                class="page-item">
+              <a class="page-link"
+                 th:href="@{/admin/v1/access/roles(q_page=${i}, q_page_size=${filter['q_page_size']}, q_name=${filter['q_name']}, q_status=${filter['q_status']}, q_desc=${filter['q_desc']})}"
+                 th:text="${i}"></a>
+            </li>
+            <li th:if="${paginate.currentPage != paginate.totalPage and paginate.totalPage != 0}"
+                class="page-item">
+              <a class="page-link"
+                 th:href="@{/admin/v1/access/roles(q_page=${paginate.currentPage + 1}, q_page_size=${filter['q_page_size']}, q_name=${filter['q_name']}, q_status=${filter['q_status']}, q_desc=${filter['q_desc']})}">
+                Next
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <script th:inline="none">
+    $("#checkall").click(function () {
+      $('input[name="selected[]"]').prop('checked', this.checked);
+    });
+  </script>
+
+</div>
+</body>
+</html>

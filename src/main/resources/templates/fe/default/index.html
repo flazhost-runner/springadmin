@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="id"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fe/default/main}">
+<head>
+  <th:block layout:fragment="head">
+    <style>
+      /* ---- Hero gradient text ---- */
+      .gradient-text {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      /* ---- Stat counter ---- */
+      .stat-counter { font-variant-numeric: tabular-nums; }
+      /* ---- Masonry gallery ---- */
+      .masonry { columns: 2; column-gap: 1rem; }
+      @media (min-width: 768px) { .masonry { columns: 3; } }
+      @media (min-width: 1024px) { .masonry { columns: 4; } }
+      .masonry-item { break-inside: avoid; margin-bottom: 1rem; }
+      /* ---- Card hover ---- */
+      .hover-lift { transition: transform .25s, box-shadow .25s; }
+      .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.1); }
+      /* ---- Testimonial card ---- */
+      .testimonial-card { background: linear-gradient(135deg, #f8fafc, var(--light)); }
+      /* ---- CTA section ---- */
+      .cta-section { background: linear-gradient(135deg, var(--primary), var(--dark)); }
+    </style>
+  </th:block>
+</head>
+<body>
+<div layout:fragment="content">
+
+  <!-- ================================================================= -->
+  <!-- HERO SECTION                                                        -->
+  <!-- ================================================================= -->
+  <section class="relative overflow-hidden py-24 md:py-36 bg-white">
+    <div class="absolute inset-0 pointer-events-none"
+         style="background: radial-gradient(ellipse 80% 60% at 60% 30%, var(--light) 0%, transparent 70%)"></div>
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center gap-12">
+
+      <!-- Text -->
+      <div class="flex-1 text-center md:text-left">
+        <p class="section-label mb-3">Welcome</p>
+        <h1 class="text-4xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
+          <span class="gradient-text"
+                th:text="${setting != null && setting.name != null ? setting.name : 'Your Company Name'}">Your Company Name</span>
+        </h1>
+        <p class="text-lg text-gray-600 mb-8 max-w-lg mx-auto md:mx-0"
+           th:utext="${setting != null && setting.description != null ? setting.description : 'We build exceptional digital experiences that drive results.'}">
+          We build exceptional digital experiences that drive results.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+          <a href="#services" class="btn-primary-fe">Explore Services</a>
+          <a href="#contact"
+             class="inline-block px-8 py-3 rounded-full border-2 font-semibold text-gray-700 hover:text-gray-900 hover:border-gray-400 transition-colors"
+             style="border-color:var(--primary);color:var(--primary)">Contact Us</a>
+        </div>
+      </div>
+
+      <!-- Visual -->
+      <div class="flex-1 flex justify-center">
+        <div class="relative w-72 h-72 md:w-96 md:h-96">
+          <div class="absolute inset-0 rounded-full opacity-20"
+               style="background:var(--primary)"></div>
+          <div class="absolute inset-6 rounded-full opacity-30"
+               style="background:var(--secondary)"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <i class="fas fa-rocket text-8xl opacity-70" style="color:var(--primary)"></i>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- STATS SECTION — 4 counters                                          -->
+  <!-- ================================================================= -->
+  <section class="py-16" style="background:var(--light)">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+
+        <div>
+          <div class="stat-counter text-4xl md:text-5xl font-extrabold mb-2 gradient-text"
+               data-count="500">500+</div>
+          <p class="text-gray-600 font-medium">Happy Clients</p>
+        </div>
+
+        <div>
+          <div class="stat-counter text-4xl md:text-5xl font-extrabold mb-2 gradient-text"
+               data-count="1200">1,200+</div>
+          <p class="text-gray-600 font-medium">Projects Delivered</p>
+        </div>
+
+        <div>
+          <div class="stat-counter text-4xl md:text-5xl font-extrabold mb-2 gradient-text"
+               data-count="15">15+</div>
+          <p class="text-gray-600 font-medium">Years Experience</p>
+        </div>
+
+        <div>
+          <div class="stat-counter text-4xl md:text-5xl font-extrabold mb-2 gradient-text"
+               data-count="50">50+</div>
+          <p class="text-gray-600 font-medium">Team Members</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- SERVICES SECTION — 3 cards                                          -->
+  <!-- ================================================================= -->
+  <section id="services" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-14">
+        <p class="section-label mb-2">What We Do</p>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900">Our Services</h2>
+        <p class="text-gray-500 mt-3 max-w-xl mx-auto">
+          We provide world-class solutions tailored to your business needs.
+        </p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+        <!-- Service 1 -->
+        <div class="rounded-2xl p-8 border border-gray-100 hover-lift bg-white shadow-sm">
+          <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6"
+               style="background:var(--light)">
+            <i class="fas fa-code text-2xl" style="color:var(--primary)"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Web Development</h3>
+          <p class="text-gray-500 leading-relaxed">
+            Modern, responsive web applications built with the latest technologies
+            and best practices for performance and SEO.
+          </p>
+        </div>
+
+        <!-- Service 2 -->
+        <div class="rounded-2xl p-8 border border-gray-100 hover-lift shadow-lg"
+             style="background:var(--primary)">
+          <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center mb-6">
+            <i class="fas fa-mobile-alt text-2xl text-white"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-3">Mobile Apps</h3>
+          <p class="text-white/80 leading-relaxed">
+            Native and cross-platform mobile applications delivering seamless
+            user experiences across iOS and Android.
+          </p>
+        </div>
+
+        <!-- Service 3 -->
+        <div class="rounded-2xl p-8 border border-gray-100 hover-lift bg-white shadow-sm">
+          <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6"
+               style="background:var(--light)">
+            <i class="fas fa-chart-line text-2xl" style="color:var(--primary)"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Digital Marketing</h3>
+          <p class="text-gray-500 leading-relaxed">
+            Data-driven marketing strategies that grow your brand, reach your
+            audience, and maximize ROI.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- CLIENT LOGOS                                                        -->
+  <!-- ================================================================= -->
+  <section class="py-14 border-y border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <p class="text-center section-label mb-8">Trusted By</p>
+      <div class="flex flex-wrap items-center justify-center gap-10 opacity-50 grayscale">
+        <span class="text-2xl font-extrabold text-gray-400">Acme Corp</span>
+        <span class="text-2xl font-extrabold text-gray-400">TechVault</span>
+        <span class="text-2xl font-extrabold text-gray-400">PixelWave</span>
+        <span class="text-2xl font-extrabold text-gray-400">NovaBuild</span>
+        <span class="text-2xl font-extrabold text-gray-400">Stratify</span>
+        <span class="text-2xl font-extrabold text-gray-400">CloudAxis</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- FEATURE CARDS                                                       -->
+  <!-- ================================================================= -->
+  <section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-14">
+        <p class="section-label mb-2">Why Us</p>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900">Key Features</h2>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <div class="flex items-start gap-4 p-6 rounded-2xl border border-gray-100 hover-lift bg-white shadow-sm">
+          <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
+               style="background:var(--light)">
+            <i class="fas fa-bolt" style="color:var(--primary)"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-gray-900 mb-1">Lightning Fast</h4>
+            <p class="text-sm text-gray-500">Optimized for speed with sub-second load times and edge caching.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4 p-6 rounded-2xl border border-gray-100 hover-lift bg-white shadow-sm">
+          <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
+               style="background:var(--light)">
+            <i class="fas fa-shield-alt" style="color:var(--primary)"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-gray-900 mb-1">Enterprise Security</h4>
+            <p class="text-sm text-gray-500">Bank-grade encryption, RBAC, and OWASP-hardened endpoints.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4 p-6 rounded-2xl border border-gray-100 hover-lift bg-white shadow-sm">
+          <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
+               style="background:var(--light)">
+            <i class="fas fa-expand-arrows-alt" style="color:var(--primary)"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-gray-900 mb-1">Infinitely Scalable</h4>
+            <p class="text-sm text-gray-500">Horizontal scaling from startup to enterprise — grows with you.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4 p-6 rounded-2xl border border-gray-100 hover-lift bg-white shadow-sm">
+          <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
+               style="background:var(--light)">
+            <i class="fas fa-paint-brush" style="color:var(--primary)"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-gray-900 mb-1">Beautiful UI</h4>
+            <p class="text-sm text-gray-500">Pixel-perfect design with 9 built-in themes and dark mode support.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4 p-6 rounded-2xl border border-gray-100 hover-lift bg-white shadow-sm">
+          <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
+               style="background:var(--light)">
+            <i class="fas fa-plug" style="color:var(--primary)"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-gray-900 mb-1">API First</h4>
+            <p class="text-sm text-gray-500">RESTful API with JWT auth — integrate with any frontend or mobile app.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4 p-6 rounded-2xl border border-gray-100 hover-lift bg-white shadow-sm">
+          <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
+               style="background:var(--light)">
+            <i class="fas fa-headset" style="color:var(--primary)"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-gray-900 mb-1">24/7 Support</h4>
+            <p class="text-sm text-gray-500">Dedicated support team ready to help you around the clock.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- MASONRY GALLERY                                                     -->
+  <!-- ================================================================= -->
+  <section id="gallery" class="py-20" style="background:var(--light)">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-14">
+        <p class="section-label mb-2">Portfolio</p>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900">Our Work</h2>
+      </div>
+      <div class="masonry">
+        <div class="masonry-item rounded-xl overflow-hidden shadow-md">
+          <div class="h-48 flex items-center justify-center"
+               style="background:linear-gradient(135deg,var(--primary),var(--secondary))">
+            <i class="fas fa-laptop text-white text-4xl"></i>
+          </div>
+        </div>
+        <div class="masonry-item rounded-xl overflow-hidden shadow-md">
+          <div class="h-64 flex items-center justify-center bg-gray-200">
+            <i class="fas fa-mobile-alt text-gray-400 text-4xl"></i>
+          </div>
+        </div>
+        <div class="masonry-item rounded-xl overflow-hidden shadow-md">
+          <div class="h-40 flex items-center justify-center"
+               style="background:linear-gradient(135deg,var(--dark),var(--primary))">
+            <i class="fas fa-chart-bar text-white text-4xl"></i>
+          </div>
+        </div>
+        <div class="masonry-item rounded-xl overflow-hidden shadow-md">
+          <div class="h-56 flex items-center justify-center bg-gray-100">
+            <i class="fas fa-paint-brush text-gray-400 text-4xl"></i>
+          </div>
+        </div>
+        <div class="masonry-item rounded-xl overflow-hidden shadow-md">
+          <div class="h-44 flex items-center justify-center"
+               style="background:linear-gradient(135deg,var(--secondary),var(--light))">
+            <i class="fas fa-globe text-gray-600 text-4xl"></i>
+          </div>
+        </div>
+        <div class="masonry-item rounded-xl overflow-hidden shadow-md">
+          <div class="h-60 flex items-center justify-center"
+               style="background:linear-gradient(135deg,var(--primary),var(--dark))">
+            <i class="fas fa-shopping-cart text-white text-4xl"></i>
+          </div>
+        </div>
+        <div class="masonry-item rounded-xl overflow-hidden shadow-md">
+          <div class="h-36 flex items-center justify-center bg-gray-50">
+            <i class="fas fa-video text-gray-400 text-4xl"></i>
+          </div>
+        </div>
+        <div class="masonry-item rounded-xl overflow-hidden shadow-md">
+          <div class="h-52 flex items-center justify-center"
+               style="background:linear-gradient(135deg,var(--light),var(--secondary))">
+            <i class="fas fa-camera text-gray-600 text-4xl"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- ABOUT BENTO                                                         -->
+  <!-- ================================================================= -->
+  <section id="about" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-14">
+        <p class="section-label mb-2">About Us</p>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900">Who We Are</h2>
+      </div>
+
+      <!-- Bento grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <!-- Large card -->
+        <div class="md:col-span-2 rounded-2xl p-8 text-white"
+             style="background:linear-gradient(135deg,var(--primary),var(--dark))">
+          <h3 class="text-2xl font-extrabold mb-4">Our Mission</h3>
+          <p class="leading-relaxed text-white/85 text-lg">
+            We empower businesses of all sizes with modern, reliable, and beautiful
+            digital products. Our team of experts combines design thinking with
+            engineering excellence to deliver solutions that matter.
+          </p>
+          <div class="mt-6 flex gap-4">
+            <div class="text-center">
+              <div class="text-3xl font-extrabold">15+</div>
+              <div class="text-sm text-white/70">Years</div>
+            </div>
+            <div class="w-px bg-white/20"></div>
+            <div class="text-center">
+              <div class="text-3xl font-extrabold">50+</div>
+              <div class="text-sm text-white/70">Experts</div>
+            </div>
+            <div class="w-px bg-white/20"></div>
+            <div class="text-center">
+              <div class="text-3xl font-extrabold">1,200+</div>
+              <div class="text-sm text-white/70">Projects</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stack of small cards -->
+        <div class="flex flex-col gap-6">
+          <div class="rounded-2xl p-6 border border-gray-100 shadow-sm hover-lift">
+            <i class="fas fa-award text-2xl mb-3" style="color:var(--primary)"></i>
+            <h4 class="font-bold text-gray-900 mb-1">Award Winning</h4>
+            <p class="text-sm text-gray-500">Recognized globally for design and innovation excellence.</p>
+          </div>
+          <div class="rounded-2xl p-6 border border-gray-100 shadow-sm hover-lift">
+            <i class="fas fa-leaf text-2xl mb-3" style="color:var(--primary)"></i>
+            <h4 class="font-bold text-gray-900 mb-1">Sustainable</h4>
+            <p class="text-sm text-gray-500">Green hosting, carbon-neutral infrastructure, responsible dev.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- TESTIMONIALS                                                        -->
+  <!-- ================================================================= -->
+  <section class="py-20" style="background:var(--light)">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-14">
+        <p class="section-label mb-2">Testimonials</p>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900">What Clients Say</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+        <div class="testimonial-card rounded-2xl p-8 shadow-sm hover-lift">
+          <div class="flex gap-1 mb-4">
+            <i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i>
+            <i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i>
+            <i class="fas fa-star text-yellow-400"></i>
+          </div>
+          <p class="text-gray-700 italic leading-relaxed mb-6">
+            "Exceptional team. They delivered our platform ahead of schedule with
+            better quality than we imagined. Truly a game changer for our business."
+          </p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                 style="background:var(--primary)">JD</div>
+            <div>
+              <div class="font-semibold text-gray-900 text-sm">John Doe</div>
+              <div class="text-xs text-gray-500">CEO, Acme Corp</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card rounded-2xl p-8 shadow-sm hover-lift">
+          <div class="flex gap-1 mb-4">
+            <i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i>
+            <i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i>
+            <i class="fas fa-star text-yellow-400"></i>
+          </div>
+          <p class="text-gray-700 italic leading-relaxed mb-6">
+            "The admin panel is incredibly intuitive. Our team adopted it in a day.
+            Performance is outstanding and the support team is always responsive."
+          </p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                 style="background:#10B981">JS</div>
+            <div>
+              <div class="font-semibold text-gray-900 text-sm">Jane Smith</div>
+              <div class="text-xs text-gray-500">CTO, TechVault</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card rounded-2xl p-8 shadow-sm hover-lift">
+          <div class="flex gap-1 mb-4">
+            <i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i>
+            <i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i>
+            <i class="fas fa-star text-yellow-400"></i>
+          </div>
+          <p class="text-gray-700 italic leading-relaxed mb-6">
+            "From discovery to launch in 8 weeks. The team's attention to detail
+            and proactive communication made the whole project a pleasure."
+          </p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                 style="background:#8B5CF6">MJ</div>
+            <div>
+              <div class="font-semibold text-gray-900 text-sm">Mike Johnson</div>
+              <div class="text-xs text-gray-500">Founder, PixelWave</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- CTA SECTION                                                         -->
+  <!-- ================================================================= -->
+  <section id="contact" class="cta-section py-20 text-white text-center">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-3xl md:text-5xl font-extrabold mb-6">Ready to Get Started?</h2>
+      <p class="text-lg text-white/80 mb-10">
+        Join hundreds of businesses that trust us to power their digital presence.
+        Let's build something great together.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/auth/login"
+           class="inline-block bg-white font-bold py-4 px-10 rounded-full transition-opacity hover:opacity-90"
+           style="color:var(--primary)">Get Started Free</a>
+        <a href="mailto:contact@example.com"
+           th:href="${setting != null && setting.email != null ? 'mailto:' + setting.email : 'mailto:contact@example.com'}"
+           class="inline-block border-2 border-white text-white font-bold py-4 px-10 rounded-full hover:bg-white/10 transition-colors">
+          Contact Us
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- Scripts: counter animation                                          -->
+  <!-- ================================================================= -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var counters = document.querySelectorAll('.stat-counter[data-count]')
+      counters.forEach(function (el) {
+        var target = parseInt(el.getAttribute('data-count'), 10)
+        if (!target) return
+        var duration = 1800
+        var step     = target / (duration / 16)
+        var current  = 0
+        var t = setInterval(function () {
+          current += step
+          if (current >= target) { current = target; clearInterval(t) }
+          el.textContent = Math.floor(current).toLocaleString() + '+'
+        }, 16)
+      })
+    })
+  </script>
+
+</div>
+</body>
+</html>

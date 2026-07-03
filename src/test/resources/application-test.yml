@@ -1,0 +1,96 @@
+spring:
+  # ---------------------------------------------------------------------------
+  # Datasource — SQLite in-memory (shared cache, compatible with Hikari)
+  # Per PORTING_GUIDE: "Test pakai SQLite in-memory → membuktikan portabilitas"
+  # ---------------------------------------------------------------------------
+  datasource:
+    url: jdbc:sqlite:file:springadmin_test?mode=memory&cache=shared
+    driver-class-name: org.sqlite.JDBC
+    username:
+    password:
+    hikari:
+      maximum-pool-size: 1          # SQLite: single-writer, no concurrent connections
+      connection-init-sql: "PRAGMA foreign_keys = ON; PRAGMA journal_mode = MEMORY;"
+
+  # ---------------------------------------------------------------------------
+  # JPA / Hibernate
+  # ---------------------------------------------------------------------------
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.community.dialect.SQLiteDialect
+
+  # ---------------------------------------------------------------------------
+  # Flyway — run against SQLite in-memory
+  # ---------------------------------------------------------------------------
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+
+  # ---------------------------------------------------------------------------
+  # Session — no external store in tests
+  # ---------------------------------------------------------------------------
+  session:
+    store-type: none
+
+  # ---------------------------------------------------------------------------
+  # Disable Redis autoconfiguration in tests
+  # ---------------------------------------------------------------------------
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.session.SessionAutoConfiguration
+
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+
+  thymeleaf:
+    cache: false
+
+  mail:
+    host: localhost
+    port: 25
+    username:
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+# ---------------------------------------------------------------------------
+# Custom app properties — test overrides
+# ---------------------------------------------------------------------------
+app:
+  env: test
+  session-secret: test-session-secret-dummy
+  jwt:
+    secret: dGVzdC1qd3Qtc2VjcmV0LWR1bW15LW1pbi0zMi1jaGFyYWN0ZXJzLW9r
+    expiration: 3600
+    algorithm: HS256
+  bcrypt:
+    rounds: 4
+  storage:
+    root: /tmp/springadmin-test-uploads
+    provider: local
+  upload:
+    allowed-types: image/jpeg,image/png,image/gif,image/webp
+    max-size: 10485760
+  rate-limit:
+    auth:
+      capacity: 1000
+      refill-tokens: 1000
+      refill-period-seconds: 1
+    otp:
+      capacity: 1000
+      refill-tokens: 1000
+      refill-period-seconds: 1

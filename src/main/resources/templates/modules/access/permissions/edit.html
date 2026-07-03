@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/be/default/main}">
+<head>
+  <title>Edit Permission</title>
+</head>
+<body>
+<div layout:fragment="content">
+
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Permission Management</h1>
+  </div>
+
+  <div class="tw-card p-6">
+    <h2 class="text-lg font-bold mb-4" style="color:var(--primary)">Permission Form</h2>
+
+    <form method="post"
+          th:action="@{/admin/v1/access/permissions/{id}(id=${data.id})}" th:object="${form}">
+      <input type="hidden" name="_method" value="PUT"/>
+
+      <!-- Name -->
+      <div class="mb-3">
+        <label for="name" class="form-label fw-semibold">Name</label>
+        <input id="name" type="text" name="name"
+               th:value="${form.name != null ? form.name : data.name}"
+               th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"
+               class="form-control">
+        <div th:if="${#fields.hasErrors('name')}" class="invalid-feedback"
+             th:errors="*{name}"></div>
+      </div>
+
+      <!-- Guard -->
+      <div class="mb-3">
+        <label for="guard_name" class="form-label fw-semibold">Guard</label>
+        <select id="guard_name" name="guardName"
+                th:classappend="${#fields.hasErrors('guardName')} ? 'is-invalid'"
+                class="form-control">
+          <option value="web"
+                  th:selected="${(form.guardName != null ? form.guardName : data.guardName) == 'web'}">web</option>
+          <option value="api"
+                  th:selected="${(form.guardName != null ? form.guardName : data.guardName) == 'api'}">api</option>
+        </select>
+        <div th:if="${#fields.hasErrors('guardName')}" class="invalid-feedback"
+             th:errors="*{guardName}"></div>
+      </div>
+
+      <!-- Method -->
+      <div class="mb-3">
+        <label for="method" class="form-label fw-semibold">Method</label>
+        <select id="method" name="method"
+                th:classappend="${#fields.hasErrors('method')} ? 'is-invalid'"
+                class="form-control">
+          <option value="">-- Select Method --</option>
+          <option value="GET"    th:selected="${(form.method != null ? form.method : data.method) == 'GET'}">GET</option>
+          <option value="POST"   th:selected="${(form.method != null ? form.method : data.method) == 'POST'}">POST</option>
+          <option value="PUT"    th:selected="${(form.method != null ? form.method : data.method) == 'PUT'}">PUT</option>
+          <option value="PATCH"  th:selected="${(form.method != null ? form.method : data.method) == 'PATCH'}">PATCH</option>
+          <option value="DELETE" th:selected="${(form.method != null ? form.method : data.method) == 'DELETE'}">DELETE</option>
+        </select>
+        <div th:if="${#fields.hasErrors('method')}" class="invalid-feedback"
+             th:errors="*{method}"></div>
+      </div>
+
+      <!-- Status -->
+      <div class="mb-3">
+        <label for="status" class="form-label fw-semibold">Status</label>
+        <select id="status" name="status" required
+                th:classappend="${#fields.hasErrors('status')} ? 'is-invalid'"
+                class="form-control">
+          <option value="Active"
+                  th:selected="${(form.status != null ? form.status : data.status) == 'Active'}">Active</option>
+          <option value="Inactive"
+                  th:selected="${(form.status != null ? form.status : data.status) == 'Inactive'}">Inactive</option>
+        </select>
+        <div th:if="${#fields.hasErrors('status')}" class="invalid-feedback"
+             th:errors="*{status}"></div>
+      </div>
+
+      <!-- Description -->
+      <div class="mb-3">
+        <label for="description" class="form-label fw-semibold">Description</label>
+        <input id="description" type="text" name="description"
+               th:value="${form.description != null ? form.description : data.description}"
+               th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"
+               class="form-control">
+        <div th:if="${#fields.hasErrors('description')}" class="invalid-feedback"
+             th:errors="*{description}"></div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary-tw px-4 py-2">
+          <i class="fas fa-save me-1"></i> Save
+        </button>
+        <a th:href="@{/admin/v1/access/permissions}" class="btn btn-danger px-4 py-2 text-white">Back</a>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+</body>
+</html>

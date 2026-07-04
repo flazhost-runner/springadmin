@@ -1,9 +1,0 @@
-{
-  "name": "SpringAdmin",
-  "language": "java",
-  "install": [],
-  "migrate": [],
-  "start": { "default": "./mvnw spring-boot:run", "win32": ".\\mvnw.cmd spring-boot:run" },
-  "url": "http://localhost:${APP_PORT}",
-  "readyPath": "/"
-}

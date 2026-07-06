@@ -7,7 +7,8 @@ spring:
       url: redis://localhost:6379
 
   datasource:
-    url: jdbc:sqlite:./springadmin.db
+    # DB_DATABASE opsional = path file sqlite (container menimpa via SPRING_DATASOURCE_URL).
+    url: jdbc:sqlite:${DB_DATABASE:./springadmin.db}
     driver-class-name: org.sqlite.JDBC
     username:
     password:

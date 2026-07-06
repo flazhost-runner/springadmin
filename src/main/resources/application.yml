@@ -2,16 +2,28 @@ spring:
   application:
     name: SpringAdmin
 
+  # .env hasil scaffold xpose (APP_PORT + DB_*) ikut terbaca di dev lokal —
+  # Spring tidak memuat .env secara native, import ini yang menjembatani.
+  config:
+    import: "optional:file:.env[.properties]"
+
+  # Profil dari DB_TYPE: tanpa konfigurasi DB → `sqlite` (zero-config, paritas
+  # NodeAdmin-family dev default). DB_TYPE=mysql/mariadb → profil tak dikenal =
+  # konfigurasi dasar MySQL di bawah. Env SPRING_PROFILES_ACTIVE selalu menang
+  # (entrypoint container men-set eksplisit; mode DB_URL-only → `default`).
+  profiles:
+    active: ${DB_TYPE:sqlite}
+
   mvc:
     hiddenmethod:
       filter:
         enabled: true
 
   # ---------------------------------------------------------------------------
-  # Datasource — MySQL
+  # Datasource — MySQL (DB_URL menang; tanpa DB_URL disusun dari DB_HOST/PORT/DATABASE)
   # ---------------------------------------------------------------------------
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/springadmin?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+    url: ${DB_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_DATABASE:springadmin}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver

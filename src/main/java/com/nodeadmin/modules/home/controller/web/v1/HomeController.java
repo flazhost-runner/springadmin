@@ -37,6 +37,9 @@ public class HomeController {
 
     private static final String DEFAULT_SLUG = "default";
 
+    /** Slug yang di-bundle & dirender view native (konvensi org: slug asli, bukan 'default'). */
+    private static final String DEFAULT_FE_TEMPLATE = "agency-consulting-002-creative-agency";
+
     private final ISettingService    settingService;
     private final IFeTemplateService feTemplateService;
 
@@ -68,24 +71,48 @@ public class HomeController {
         String feTemplate = setting.getFeTemplate();
         boolean useDefault = feTemplate == null
                 || feTemplate.isBlank()
-                || DEFAULT_SLUG.equalsIgnoreCase(feTemplate);
+                || DEFAULT_SLUG.equalsIgnoreCase(feTemplate)
+                || DEFAULT_FE_TEMPLATE.equalsIgnoreCase(feTemplate);
 
-        if (useDefault) {
-            // Populate model for the Thymeleaf fe/default/index template
-            ThemeConfig.Theme theme = ThemeConfig.getByName(
-                    setting.getTheme() != null ? setting.getTheme() : "Blue");
-            model.addAttribute("setting", setting);
-            model.addAttribute("theme", theme);
-            return "fe/default/index";
+        if (!useDefault) {
+            // Slug non-default → stream HTML mentah hasil unduhan; kegagalan unduh
+            // jatuh ke view native agar landing tidak pernah error (paritas GoAdmin).
+            try {
+                String html = feTemplateService.getActiveHtml(feTemplate);
+                response.setContentType(MediaType.TEXT_HTML_VALUE);
+                response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                response.getWriter().write(html);
+                response.getWriter().flush();
+                // Return null tells Spring MVC we already wrote the response
+                return null;
+            } catch (RuntimeException e) {
+                // fall through ke view native
+            }
         }
 
-        // Stream the raw HTML from the cached fe-template file
-        String html = feTemplateService.getActiveHtml(feTemplate);
-        response.setContentType(MediaType.TEXT_HTML_VALUE);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.getWriter().write(html);
-        response.getWriter().flush();
-        // Return null tells Spring MVC we already wrote the response
-        return null;
+        // Populate model for the Thymeleaf fe/default/index template (landing v6)
+        ThemeConfig.Theme theme = ThemeConfig.getByName(
+                setting.getTheme() != null ? setting.getTheme() : "Blue");
+        model.addAttribute("setting", setting);
+        model.addAttribute("theme", theme);
+        model.addAttribute("landing", landingModel(setting));
+        return "fe/default/index";
+    }
+
+    /** View-model landing: binding Setting + fallback aman (paritas GoAdmin HomeService.Landing). */
+    private static java.util.Map<String, String> landingModel(SettingEntity s) {
+        java.util.Map<String, String> m = new java.util.HashMap<>();
+        m.put("app_name", orDefault(s.getName(), "SpringAdmin"));
+        m.put("description", orDefault(s.getDescription(), ""));
+        m.put("logo", orDefault(s.getLogo(), ""));
+        m.put("email", orDefault(s.getEmail(), ""));
+        m.put("phone", orDefault(s.getPhone(), ""));
+        m.put("address", orDefault(s.getAddress(), ""));
+        m.put("copyright", orDefault(s.getCopyright(), "© SpringAdmin"));
+        return m;
+    }
+
+    private static String orDefault(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
     }
 }

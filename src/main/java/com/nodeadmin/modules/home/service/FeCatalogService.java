@@ -50,28 +50,59 @@ public class FeCatalogService implements IFeCatalogService {
 
     private static final String GITHUB_TREE_API =
             "https://api.github.com/repos/lindoai/opentailwind/git/trees/master?recursive=1";
+    /** Landing HTML hidup di subpath `landings/` (bukan root repo). */
     private static final String RAW_BASE =
-            "https://raw.githubusercontent.com/lindoai/opentailwind/master/";
+            "https://raw.githubusercontent.com/lindoai/opentailwind/master/landings/";
     private static final Duration HTTP_TIMEOUT = Duration.ofSeconds(15);
     private static final long MEMORY_TTL_SECONDS = 6 * 3600L; // 6 hours
+    private static final String TREE_PREFIX = "landings/";
 
-    /** Anti-SSRF slug validation — mirrors FeTemplateService. */
+    /** Anti-SSRF slug validation — canonical flat slug, mirrors FeTemplateService. */
     static final java.util.regex.Pattern SAFE_SEGMENT =
-            java.util.regex.Pattern.compile("^[a-z0-9][a-z0-9-]*$");
+            java.util.regex.Pattern.compile("^([a-z]+(?:-[a-z]+)*)-([0-9]{3})-([a-z0-9-]+)$");
 
-    /** Curated offline fallback list (~10 items). */
-    private static final List<CatalogEntry> OFFLINE_FALLBACK = List.of(
-            new CatalogEntry("agency/agency-001-classic",  "agency-001-classic",  "agency"),
-            new CatalogEntry("saas/saas-001-launch",       "saas-001-launch",     "saas"),
-            new CatalogEntry("portfolio/portfolio-001-dev","portfolio-001-dev",   "portfolio"),
-            new CatalogEntry("blog/blog-001-minimal",      "blog-001-minimal",    "blog"),
-            new CatalogEntry("startup/startup-001-bold",   "startup-001-bold",    "startup"),
-            new CatalogEntry("landing/landing-001-hero",   "landing-001-hero",    "landing"),
-            new CatalogEntry("corporate/corporate-001-pro","corporate-001-pro",   "corporate"),
-            new CatalogEntry("ecommerce/ecommerce-001-shop","ecommerce-001-shop", "ecommerce"),
-            new CatalogEntry("app/app-001-mobile",         "app-001-mobile",      "app"),
-            new CatalogEntry("tech/tech-001-dark",         "tech-001-dark",       "tech")
+    /**
+     * Curated offline fallback — 15 slug kanonik, IDENTIK FE_TEMPLATES NodeAdmin /
+     * `curated` GoAdmin (default urutan pertama). Slug FLAT (tanpa prefix landings/).
+     */
+    private static final List<String> OFFLINE_FALLBACK_SLUGS = List.of(
+            "agency-consulting-002-creative-agency",
+            "agency-consulting-001-digital-marketing-agency",
+            "technology-saas-001-hero-focused-conversion-page",
+            "technology-saas-002-feature-rich-multi-section",
+            "ecommerce-retail-001-fashion-boutique",
+            "ecommerce-retail-002-luxury-fashion-brand",
+            "portfolio-creative-001-creative-portfolio",
+            "portfolio-creative-002-minimal-portfolio",
+            "professional-services-001-law-firm",
+            "real-estate-property-001-real-estate-agency",
+            "food-hospitality-001-fine-dining-restaurant",
+            "healthcare-wellness-001-family-doctor-clinic",
+            "education-training-001-private-school",
+            "fitness-sports-001-fitness-center",
+            "travel-tourism-001-travel-agency"
     );
+
+    private static final List<CatalogEntry> OFFLINE_FALLBACK = OFFLINE_FALLBACK_SLUGS
+            .stream().map(FeCatalogService::entryFromSlug)
+            .filter(java.util.Objects::nonNull).toList();
+
+    /** Derivasi metadata dari slug kanonik: kategori + nomor + nama (titleized). */
+    private static CatalogEntry entryFromSlug(String slug) {
+        var m = SAFE_SEGMENT.matcher(slug);
+        if (!m.matches()) return null;
+        return new CatalogEntry(slug, titleize(m.group(3)), titleize(m.group(1)));
+    }
+
+    private static String titleize(String kebab) {
+        StringBuilder out = new StringBuilder();
+        for (String w : kebab.split("-")) {
+            if (w.isBlank()) continue;
+            if (out.length() > 0) out.append(' ');
+            out.append(Character.toUpperCase(w.charAt(0))).append(w.substring(1));
+        }
+        return out.toString();
+    }
 
     // -------------------------------------------------------------------------
     // State
@@ -233,10 +264,6 @@ public class FeCatalogService implements IFeCatalogService {
         return parseGitHubTree(resp.body());
     }
 
-    /** Categories excluded from the catalog — component/snippet directories, not full pages. */
-    private static final java.util.Set<String> EXCLUDED_CATEGORIES =
-            java.util.Set.of("blocks");
-
     private List<CatalogEntry> parseGitHubTree(String json) throws Exception {
         JsonNode root = objectMapper.readTree(json);
         JsonNode tree = root.path("tree");
@@ -244,25 +271,18 @@ public class FeCatalogService implements IFeCatalogService {
         for (JsonNode node : tree) {
             String path = node.path("path").asText("");
             String type = node.path("type").asText("");
-            // Only blob .html files in a top-level directory
+            // Hanya blob landings/<slug>.html — slug disimpan FLAT (tanpa prefix),
+            // metadata (kategori/nama) diturunkan dari pola slug kanonik.
             if (!"blob".equals(type)) continue;
-            if (!path.endsWith(".html")) continue;
-            // Strip .html extension to get slug
-            String slug = path.substring(0, path.length() - 5);
-            // Derive category (first path segment) and name (last segment)
-            String category = slug.contains("/")
-                    ? slug.substring(0, slug.indexOf('/'))
-                    : "";
-            String name = slug.contains("/")
-                    ? slug.substring(slug.lastIndexOf('/') + 1)
-                    : slug;
-            // Skip component/snippet directories — only full landing page templates
-            if (EXCLUDED_CATEGORIES.contains(category)) continue;
-            // Basic anti-garbage filter — name must look like a real slug
-            if (!name.isBlank() && !category.isBlank()) {
-                entries.add(new CatalogEntry(slug, name, category));
+            if (!path.startsWith(TREE_PREFIX) || !path.endsWith(".html")) continue;
+            String slug = path.substring(TREE_PREFIX.length(), path.length() - 5);
+            CatalogEntry entry = entryFromSlug(slug);
+            if (entry != null) {
+                entries.add(entry);
             }
         }
+        entries.sort(java.util.Comparator.comparing(CatalogEntry::category)
+                .thenComparing(CatalogEntry::name));
         return entries;
     }
 

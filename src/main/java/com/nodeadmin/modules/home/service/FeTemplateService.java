@@ -35,11 +35,13 @@ public class FeTemplateService implements IFeTemplateService {
 
     private static final Logger log = LoggerFactory.getLogger(FeTemplateService.class);
 
-    /** Anti-SSRF: valid path-segment — lowercase, digits, hyphens only; no dot-dot. */
-    private static final Pattern SAFE_SEGMENT = Pattern.compile("^[a-z0-9][a-z0-9-]*$");
+    /** Anti-SSRF: canonical opentailwind slug `<category>-<3digit>-<name>` (flat, no '/'). */
+    private static final Pattern SAFE_SEGMENT =
+            Pattern.compile("^([a-z]+(?:-[a-z]+)*)-([0-9]{3})-([a-z0-9-]+)$");
 
+    /** Landing HTML hidup di subpath `landings/` (bukan root repo). */
     private static final String RAW_BASE =
-            "https://raw.githubusercontent.com/lindoai/opentailwind/master/";
+            "https://raw.githubusercontent.com/lindoai/opentailwind/master/landings/";
 
     private static final Duration HTTP_TIMEOUT = Duration.ofSeconds(15);
 
@@ -94,22 +96,16 @@ public class FeTemplateService implements IFeTemplateService {
     // =========================================================================
 
     /**
-     * Validates slug against path-traversal and character injection.
-     * Each segment (split on '/') must match {@link #SAFE_SEGMENT}.
-     * Leading/trailing slashes and ".." are rejected outright.
+     * Validates slug against the canonical flat pattern (anti-SSRF/path-traversal).
+     * Slug TIDAK boleh mengandung '/' — subpath `landings/` sudah di {@link #RAW_BASE}.
      */
     private void validateSlug(String slug) {
         if (slug == null || slug.isBlank()) {
             throw new AppError(400, "INVALID_SLUG", "Template slug must not be blank");
         }
-        if (slug.startsWith("/") || slug.endsWith("/") || slug.contains("..") || slug.contains("\\")) {
-            throw new AppError(400, "INVALID_SLUG", "Invalid slug: " + slug);
-        }
-        for (String segment : slug.split("/", -1)) {
-            if (!SAFE_SEGMENT.matcher(segment).matches()) {
-                throw new AppError(400, "INVALID_SLUG",
-                        "Template slug contains invalid characters: " + slug);
-            }
+        if (!SAFE_SEGMENT.matcher(slug).matches()) {
+            throw new AppError(400, "INVALID_SLUG",
+                    "Template slug contains invalid characters: " + slug);
         }
     }
 

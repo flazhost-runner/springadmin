@@ -74,6 +74,11 @@ if [ "$DB_MODE" = "sqlite" ]; then
     export SPRING_PROFILES_ACTIVE="${SPRING_PROFILES_ACTIVE:-sqlite}"
     export SPRING_DATASOURCE_URL="jdbc:sqlite:${SQLITE_FILE}"
     echo "[entrypoint] No external database linked — using zero-config SQLite at $SQLITE_FILE (profile: $SPRING_PROFILES_ACTIVE)"
+else
+    # application.yml kini men-default profil ke ${DB_TYPE:sqlite} (dev zero-config).
+    # Mode DB eksternal via DB_URL saja (DB_TYPE kosong) harus tetap MySQL — kunci
+    # profil ke `default` agar profil sqlite tidak ikut aktif menimpa DB_URL.
+    export SPRING_PROFILES_ACTIVE="${SPRING_PROFILES_ACTIVE:-default}"
 fi
 
 # ── 4. Redis ─────────────────────────────────────────────────────────────────

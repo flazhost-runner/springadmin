@@ -154,6 +154,17 @@ Default admin credentials (seeded oleh Flyway): **admin@example.com** / **Admin1
 | `AuthApiTest` | Integration | Login → JWT, GET /me with token, logout then /me → 401 (real blacklist) |
 | `DeleteMethodSmokeSteps` | Cucumber BDD | `_method=DELETE` form override; verbose API paths return 200 |
 
+### API Collection (Postman)
+
+A ready-to-import Postman collection lives at
+[`docs/postman/SpringAdmin.postman_collection.json`](docs/postman/SpringAdmin.postman_collection.json).
+It covers the token-based REST endpoints (auth, access: role / permission / user).
+
+Import it, then set the `base_url` collection variable. The default matches this
+app's server port: **`http://localhost:8006`** (overridable via `APP_PORT`).
+Authenticate first (login request) so the `access_token` variable is populated for
+the protected requests.
+
 ---
 
 ## Module Generator

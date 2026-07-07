@@ -129,6 +129,11 @@ spring:
 # ---------------------------------------------------------------------------
 server:
   port: ${APP_PORT:8006}
+  # Behind a TLS-terminating reverse proxy (CapRover/nginx/Heroku) that speaks
+  # HTTP to the app but forwards X-Forwarded-Proto: https. "framework" lets
+  # Spring's ForwardedHeaderFilter rewrite scheme/host/port so request.isSecure()
+  # is true → https redirects and the Secure session cookie work correctly.
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:framework}
   compression:
     enabled: true
     mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json

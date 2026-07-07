@@ -93,7 +93,7 @@
         <label for="picture" class="form-label fw-semibold">Picture</label>
         <div class="d-flex align-items-center gap-3">
           <img id="picturePreview"
-               th:src="${data.picture != null ? '/public/storage/' + data.picture : '/public/modules/access/user/user.png'}"
+               th:src="${data.picture != null ? storageUrl.url(data.picture) : '/public/modules/access/user/user.png'}"
                width="90" height="90"
                class="rounded border p-1"
                style="object-fit:contain;background:#f8fafc"

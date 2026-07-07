@@ -66,13 +66,19 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
-        // Serve uploaded files (media, setting icons/logo) from the filesystem storage root.
+        // Serve uploaded files (media, setting icons/logo) from the filesystem storage
+        // root — but ONLY for the local driver. For oss/s3, objects live in the cloud
+        // and are rendered as absolute URLs by StorageUrlBuilder, so no local serving
+        // is registered. Driver alone decides — no code/view edits needed to switch.
         // Registered BEFORE /public/** so it takes precedence for /public/storage/* paths.
         // Path resolved absolutely — never CWD-relative (Porting Guide — Lesson 9).
-        String storageRoot = Paths.get(appProperties.getStorage().getRoot())
-                                   .toAbsolutePath().toString();
-        registry.addResourceHandler("/public/storage/**")
-                .addResourceLocations("file:" + storageRoot + "/");
+        String driver = appProperties.getStorage().getDriver();
+        if (driver == null || driver.isBlank() || "local".equalsIgnoreCase(driver)) {
+            String storageRoot = Paths.get(appProperties.getStorage().getRoot())
+                                       .toAbsolutePath().toString();
+            registry.addResourceHandler("/public/storage/**")
+                    .addResourceLocations("file:" + storageRoot + "/");
+        }
 
         registry.addResourceHandler("/public/**")
                 .addResourceLocations("classpath:/static/public/");

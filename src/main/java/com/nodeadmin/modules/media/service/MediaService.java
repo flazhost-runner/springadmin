@@ -1,6 +1,7 @@
 package com.nodeadmin.modules.media.service;
 
 import com.nodeadmin.common.error.AppError;
+import com.nodeadmin.common.storage.StorageUrlBuilder;
 import com.nodeadmin.config.AppProperties;
 import org.apache.tika.Tika;
 import org.slf4j.Logger;
@@ -51,12 +52,14 @@ public class MediaService implements IMediaService {
     /** Storage key prefix — also used as the subdirectory name. */
     private static final String EDITOR_DIR = "editor";
 
-    private final AppProperties appProperties;
-    private final Tika          tika;
+    private final AppProperties     appProperties;
+    private final StorageUrlBuilder storageUrlBuilder;
+    private final Tika              tika;
 
-    public MediaService(AppProperties appProperties) {
-        this.appProperties = appProperties;
-        this.tika          = new Tika();
+    public MediaService(AppProperties appProperties, StorageUrlBuilder storageUrlBuilder) {
+        this.appProperties     = appProperties;
+        this.storageUrlBuilder = storageUrlBuilder;
+        this.tika              = new Tika();
     }
 
     // -------------------------------------------------------------------------
@@ -183,7 +186,8 @@ public class MediaService implements IMediaService {
      */
     private MediaFile toMediaFile(String filename) {
         String key = EDITOR_DIR + "/" + filename;
-        String url = "/public/storage/" + key;
+        // Driver-aware render URL: local → /public/storage/<key>; oss/s3 → absolute cloud URL.
+        String url = storageUrlBuilder.url(key);
         return new MediaFile(filename, url, key);
     }
 }

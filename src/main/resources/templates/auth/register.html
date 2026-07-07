@@ -14,7 +14,7 @@
     <!-- ===== Left panel: visual ===== -->
     <div class="hidden md:flex sidebar-gradient items-center justify-center p-10">
       <img class="max-w-full max-h-80 object-contain"
-           th:src="${setting != null && setting.loginImage != null ? '/public/storage/' + setting.loginImage : '/public/images/login-default.png'}"
+           th:src="${setting != null && setting.loginImage != null ? storageUrl.url(setting.loginImage) : '/public/images/login-default.png'}"
            alt="Register Image">
     </div>
 
@@ -24,7 +24,7 @@
       <!-- Logo -->
       <div class="mb-8 text-center">
         <img class="h-14 mx-auto object-contain"
-             th:src="${setting != null && setting.icon != null ? '/public/storage/' + setting.icon : '/public/images/logo-default.png'}"
+             th:src="${setting != null && setting.icon != null ? storageUrl.url(setting.icon) : '/public/images/logo-default.png'}"
              alt="Logo">
       </div>
 

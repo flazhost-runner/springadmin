@@ -1,6 +1,7 @@
 package com.nodeadmin.common.advice;
 
 import com.nodeadmin.common.model.SessionUser;
+import com.nodeadmin.common.storage.StorageUrlBuilder;
 import com.nodeadmin.common.util.FlashHelper;
 import com.nodeadmin.modules.access.permission.repository.PermissionRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,9 +33,12 @@ import java.util.Map;
 public class GlobalViewDataAdvice {
 
     private final PermissionRepository permissionRepository;
+    private final StorageUrlBuilder    storageUrlBuilder;
 
-    public GlobalViewDataAdvice(PermissionRepository permissionRepository) {
+    public GlobalViewDataAdvice(PermissionRepository permissionRepository,
+                                StorageUrlBuilder storageUrlBuilder) {
         this.permissionRepository = permissionRepository;
+        this.storageUrlBuilder    = storageUrlBuilder;
     }
 
     @ModelAttribute
@@ -46,6 +50,9 @@ public class GlobalViewDataAdvice {
         model.addAttribute("getFileHelper",   new GetFileHelper(request));
         model.addAttribute("getOldHelper",    new GetOldHelper(session));
         model.addAttribute("getErrorHelper",  new GetErrorHelper(session));
+        // Driver-aware storage render URL: ${storageUrl.url(key)} in Thymeleaf.
+        // local → /public/storage/<key>; oss/s3 → absolute cloud URL. Property decides.
+        model.addAttribute("storageUrl",       storageUrlBuilder);
     }
 
     // =========================================================================

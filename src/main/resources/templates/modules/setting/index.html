@@ -268,7 +268,7 @@
       <div class="mb-4">
         <label for="icon" class="form-label fw-semibold">Company Icon [icon]</label>
         <div class="d-flex align-items-center gap-3">
-          <img th:src="${setting.icon != null ? '/public/storage/' + setting.icon : '/public/modules/setting/placeholder.png'}"
+          <img th:src="${setting.icon != null ? storageUrl.url(setting.icon) : '/public/modules/setting/placeholder.png'}"
                width="90" height="90" class="rounded border p-1" style="object-fit:contain"
                alt="icon">
           <input id="icon" type="file" name="icon" class="form-control">
@@ -279,7 +279,7 @@
       <div class="mb-4">
         <label for="logo" class="form-label fw-semibold">Company Logo [logo]</label>
         <div class="d-flex align-items-center gap-3">
-          <img th:src="${setting.logo != null ? '/public/storage/' + setting.logo : '/public/modules/setting/placeholder.png'}"
+          <img th:src="${setting.logo != null ? storageUrl.url(setting.logo) : '/public/modules/setting/placeholder.png'}"
                width="90" height="90" class="rounded border p-1" style="object-fit:contain"
                alt="logo">
           <input id="logo" type="file" name="logo" class="form-control">
@@ -290,7 +290,7 @@
       <div class="mb-4">
         <label for="login_image" class="form-label fw-semibold">Login Image [login_image]</label>
         <div class="d-flex align-items-center gap-3">
-          <img th:src="${setting.loginImage != null ? '/public/storage/' + setting.loginImage : '/public/modules/setting/placeholder.png'}"
+          <img th:src="${setting.loginImage != null ? storageUrl.url(setting.loginImage) : '/public/modules/setting/placeholder.png'}"
                width="90" height="90" class="rounded border p-1" style="object-fit:contain"
                alt="login image">
           <input id="login_image" type="file" name="login_image" class="form-control">

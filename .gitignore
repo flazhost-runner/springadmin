@@ -36,4 +36,7 @@ build/
 *.db
 *.log
 *.log.*
-uploads/
+
+# Uploaded content (local storage driver) — ignore files, keep the directory
+uploads/*
+!uploads/.gitkeep

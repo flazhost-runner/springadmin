@@ -77,8 +77,14 @@ All configuration is bound through `AppProperties` (`app.*` prefix). Pass these 
 | `APP_JWT_SECRET` | _(must set)_ | Base64-encoded HMAC-SHA256 signing key (min 32 bytes) |
 | `APP_JWT_EXPIRATION` | `86400` | Token lifetime in seconds (default: 24 h) |
 | `APP_BCRYPT_ROUNDS` | `12` | BCrypt cost factor (use 4 in tests for speed) |
-| `APP_STORAGE_ROOT` | `./storage` | Filesystem root for uploaded files |
-| `APP_STORAGE_PROVIDER` | `local` | Storage backend (`local` only currently) |
+| `STORAGE_DRIVER` | `local` | Storage backend: `local`, `oss`, or `s3` |
+| `STORAGE_ROOT` | `uploads` | Filesystem root for the `local` driver |
+| `STORAGE_BUCKET` | _(empty)_ | Bucket name (`oss`/`s3`) |
+| `STORAGE_ENDPOINT` | _(empty)_ | Endpoint host (`oss`, or S3-compatible: MinIO/R2) |
+| `STORAGE_REGION` | _(empty)_ | Region (`s3`; defaults to `us-east-1`) |
+| `STORAGE_ACCESS_KEY_ID` | _(empty)_ | Cloud access key id (`oss`/`s3`) |
+| `STORAGE_SECRET_ACCESS_KEY` | _(empty)_ | Cloud secret access key (`oss`/`s3`) |
+| `STORAGE_SSL` | `true` | Use `https` for cloud URLs |
 | `APP_ENV` | `development` | Application environment (`development`, `production`) |
 | `APP_SESSION_SECRET` | _(must set)_ | Secret for session cookie signing |
 
@@ -90,6 +96,64 @@ All configuration is bound through `AppProperties` (`app.*` prefix). Pass these 
 # 32-byte random secret, Base64-encoded
 openssl rand -base64 32
 ```
+
+---
+
+## Storage & switching backends
+
+Uploaded files (setting icon/logo/login image, user avatars, media-editor images) are
+handled by a driver-based storage layer. **The database only ever stores the object
+`key`** (e.g. `setting/icon.png`, `editor/photo.jpg`); the render URL is built at request
+time by `StorageUrlBuilder` based on the active driver. Switching backends therefore needs
+**only a property/`.env` change plus a restart** — no code or template edits.
+
+### Drivers and render URLs
+
+| `STORAGE_DRIVER` | Where objects live | Render URL for key `setting/icon.png` |
+|---|---|---|
+| `local` (default) | Filesystem under `STORAGE_ROOT` | `/public/storage/setting/icon.png` (relative, served by the app) |
+| `s3` (AWS) | S3 bucket | `https://<bucket>.s3.<region>.amazonaws.com/setting/icon.png` |
+| `s3` (endpoint set: MinIO/R2/S3-compatible) | Bucket via custom endpoint | `https://<host>/<bucket>/setting/icon.png` (path-style) |
+| `oss` (Alibaba Cloud) | OSS bucket | `https://<bucket>.<endpoint>/setting/icon.png` |
+
+For the **local** driver a Spring resource handler maps `/public/storage/**` onto the
+absolute `STORAGE_ROOT` (`WebMvcConfig#addResourceHandlers`). This handler is registered
+**only when `STORAGE_DRIVER=local`** — for `oss`/`s3` the app serves nothing locally and
+renders absolute cloud URLs instead. The URL prefix is deliberately decoupled from the
+filesystem path, so an absolute `STORAGE_ROOT` (e.g. `/app/uploads` in a container) still
+yields a valid `/public/storage/<key>` URL.
+
+### Switching backend
+
+1. Set `STORAGE_DRIVER` (`local` | `oss` | `s3`) and the matching credentials
+   (`STORAGE_BUCKET`, `STORAGE_ENDPOINT`, `STORAGE_REGION`, `STORAGE_ACCESS_KEY_ID`,
+   `STORAGE_SECRET_ACCESS_KEY`, `STORAGE_SSL`).
+2. Restart the app. No code/template changes are needed — existing DB rows keep working
+   because they store keys, not URLs.
+
+### Migrating existing files
+
+Because the DB stores keys, migrating between backends is a bulk object copy that
+**preserves the key layout**:
+
+```bash
+# local -> S3 (or S3-compatible)
+aws s3 sync ./uploads s3://<bucket>/
+
+# local -> Alibaba Cloud OSS
+ossutil cp -r ./uploads oss://<bucket>/
+```
+
+Keep the same key paths (`setting/…`, `editor/…`, user avatars, …) so render URLs resolve
+without touching the database.
+
+### Caveats
+
+- **Local in production is ephemeral.** On a container/PaaS the `local` driver writes to the
+  container filesystem, which is wiped on redeploy. For a durable `local` setup, mount a
+  **persistent volume** at `STORAGE_ROOT`; otherwise use `oss`/`s3`.
+- **Uploads are git-ignored.** The `uploads/` directory keeps only a `.gitkeep`; uploaded
+  content is excluded via `.gitignore` and must not be committed.
 
 ---
 
